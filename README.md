@@ -8,7 +8,6 @@ brings four personal-finance tools into one dark glassmorphism interface.
 | Item | Link |
 |------|------|
 | Source code | [`fittolend.html`](./fittolend.html) (this repository) |
-| Project report | [`FitToLend_Project_Report.docx`](./FitToLend_Project_Report.docx) |
 | Demo video | **https://drive.google.com/drive/folders/1Ymyg40SbyL0dvm4BzX-C0h3prW8K1H6X?usp=sharing** |
 
 ## Modules
