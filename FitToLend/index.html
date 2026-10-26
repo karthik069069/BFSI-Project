@@ -1,0 +1,1774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FitToLend — AI-Powered Financial Decision Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-0:#070a12;
+    --bg-1:#0b1120;
+    --bg-2:#0e1526;
+    --glass-bg: rgba(255,255,255,0.045);
+    --glass-bg-strong: rgba(255,255,255,0.08);
+    --glass-border: rgba(255,255,255,0.09);
+    --glass-border-strong: rgba(255,255,255,0.18);
+    --teal:#2ad9a8;
+    --teal-dim: rgba(42,217,168,0.15);
+    --violet:#8c7cf0;
+    --violet-dim: rgba(140,124,240,0.16);
+    --amber:#f0a857;
+    --amber-dim: rgba(240,168,87,0.16);
+    --red:#f26d6d;
+    --red-dim: rgba(242,109,109,0.16);
+    --text-0:#eaf0fb;
+    --text-1:#aeb8cc;
+    --text-2:#6e7893;
+    --radius-lg:22px;
+    --radius-md:14px;
+    --radius-sm:10px;
+    --font-display:'Sora', sans-serif;
+    --font-body:'Inter', sans-serif;
+    --font-mono:'JetBrains Mono', monospace;
+    --sidebar-w: 268px;
+    color-scheme: dark;
+  }
+  *{ box-sizing:border-box; }
+  html{ scroll-padding-top: env(safe-area-inset-top,0px); }
+  html,body{ height:100%; }
+  body{
+    margin:0;
+    background: var(--bg-0);
+    color: var(--text-0);
+    font-family: var(--font-body);
+    -webkit-font-smoothing:antialiased;
+    padding-top: env(safe-area-inset-top,0px);
+    padding-bottom: env(safe-area-inset-bottom,0px);
+    overflow-x:hidden;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; }
+  }
+
+  /* Ambient background */
+  #bg-mesh{
+    position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden;
+    background:
+      radial-gradient(1100px 700px at 8% -10%, rgba(140,124,240,0.16), transparent 60%),
+      radial-gradient(900px 650px at 105% 15%, rgba(42,217,168,0.13), transparent 60%),
+      radial-gradient(800px 600px at 50% 115%, rgba(240,168,87,0.08), transparent 60%),
+      linear-gradient(180deg, var(--bg-0), var(--bg-1) 45%, var(--bg-0));
+  }
+  #bg-mesh .orb{
+    position:absolute; border-radius:50%; filter: blur(60px); opacity:0.55;
+    animation: drift 26s ease-in-out infinite;
+  }
+  #bg-mesh .orb.o1{ width:420px; height:420px; top:-120px; left:-100px; background: radial-gradient(circle, rgba(140,124,240,0.35), transparent 70%); animation-delay:0s; }
+  #bg-mesh .orb.o2{ width:500px; height:500px; bottom:-160px; right:-120px; background: radial-gradient(circle, rgba(42,217,168,0.28), transparent 70%); animation-delay:-8s; }
+  #bg-mesh .orb.o3{ width:340px; height:340px; top:40%; right:20%; background: radial-gradient(circle, rgba(240,168,87,0.18), transparent 70%); animation-delay:-16s; }
+  @keyframes drift{
+    0%,100%{ transform: translate(0,0) scale(1); }
+    50%{ transform: translate(30px,-20px) scale(1.06); }
+  }
+  .grain{ position:fixed; inset:0; z-index:1; pointer-events:none; opacity:0.035;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* Glass primitives */
+  .glass{
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    backdrop-filter: blur(22px) saturate(140%);
+    -webkit-backdrop-filter: blur(22px) saturate(140%);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 20px 50px -25px rgba(0,0,0,0.6);
+  }
+  .glass-strong{ background: var(--glass-bg-strong); border-color: var(--glass-border-strong); }
+
+  /* Layout shell */
+  .shell{ position:relative; z-index:2; display:flex; min-height:100vh; }
+
+  .sidebar{
+    width: var(--sidebar-w); flex-shrink:0;
+    padding: 26px 18px; display:flex; flex-direction:column; gap:26px;
+    border-right:1px solid var(--glass-border);
+    background: rgba(7,10,18,0.65);
+    backdrop-filter: blur(18px);
+    position:sticky; top:0; height:100vh; padding-top: calc(26px + env(safe-area-inset-top,0px));
+  }
+  .brand{ display:flex; align-items:center; gap:11px; padding:0 6px; }
+  .brand-mark{
+    width:38px; height:38px; border-radius:11px; flex-shrink:0;
+    background: conic-gradient(from 220deg, var(--teal), var(--violet) 55%, var(--amber) 100%);
+    display:flex; align-items:center; justify-content:center;
+    box-shadow: 0 8px 20px -8px rgba(140,124,240,0.6);
+  }
+  .brand-mark svg{ width:19px; height:19px; }
+  .brand-name{ font-family:var(--font-display); font-weight:700; font-size:17px; letter-spacing:0.2px; }
+  .brand-sub{ font-size:11px; color:var(--text-2); margin-top:1px; }
+
+  .navlist{ display:flex; flex-direction:column; gap:4px; }
+  .navlist .navgroup-label{ font-size:11px; color:var(--text-2); padding:10px 12px 4px; font-weight:600; letter-spacing:0.3px; }
+  .navitem{
+    display:flex; align-items:center; gap:11px; padding:11px 12px; border-radius: var(--radius-md);
+    color: var(--text-1); text-decoration:none; font-size:14px; font-weight:500; cursor:pointer;
+    border:1px solid transparent; transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+    background:none; width:100%; text-align:left; font-family:var(--font-body);
+  }
+  .navitem svg{ width:17px; height:17px; flex-shrink:0; opacity:0.85; }
+  .navitem:hover{ background: rgba(255,255,255,0.045); color:var(--text-0); }
+  .navitem.active{
+    background: linear-gradient(135deg, rgba(42,217,168,0.14), rgba(140,124,240,0.1));
+    border-color: rgba(255,255,255,0.14); color:var(--text-0);
+  }
+  .navitem.active .dot{ background:var(--teal); box-shadow:0 0 0 3px var(--teal-dim); }
+  .navitem .dot{ width:6px; height:6px; border-radius:50%; background:var(--text-2); margin-left:auto; flex-shrink:0; }
+
+  .sidebar-foot{ margin-top:auto; display:flex; flex-direction:column; gap:10px; }
+  .privacy-chip{
+    display:flex; align-items:center; gap:9px; padding:11px 12px; border-radius: var(--radius-md);
+    font-size:11.5px; color:var(--text-2); line-height:1.4;
+  }
+  .privacy-chip svg{ width:15px; height:15px; flex-shrink:0; color:var(--teal); margin-top:1px; }
+
+  .main{ flex:1; min-width:0; padding: 26px 34px 60px; padding-top: calc(26px + env(safe-area-inset-top,0px)); }
+  .topbar{ display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:26px; flex-wrap:wrap; }
+  .topbar h1{ font-family:var(--font-display); font-size:22px; font-weight:700; margin:0; letter-spacing:-0.2px; }
+  .topbar .sub{ color:var(--text-2); font-size:13px; margin-top:3px; }
+  .menu-btn{ display:none; }
+
+  .topbar-actions{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .status-pill{
+    display:flex; align-items:center; gap:8px; padding:8px 14px; border-radius:999px;
+    font-size:12px; color:var(--text-1); font-weight:500; cursor:pointer;
+    transition: background 0.2s ease, border-color 0.2s ease;
+  }
+  .status-pill:hover{ background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); }
+  .status-pill .pulse{ width:7px; height:7px; border-radius:50%; background:var(--teal); position:relative; }
+  .status-pill .pulse::after{
+    content:''; position:absolute; inset:-4px; border-radius:50%; border:1px solid var(--teal);
+    animation: pulse 2.4s ease-out infinite;
+  }
+  .status-pill.offline .pulse{ background:var(--amber); }
+  .status-pill.offline .pulse::after{ border-color:var(--amber); }
+  @keyframes pulse{ 0%{ transform:scale(0.6); opacity:0.9;} 100%{ transform:scale(2.1); opacity:0; } }
+
+  .settings-btn{
+    display:flex; align-items:center; gap:7px; padding:8px 14px; border-radius:999px;
+    font-size:12px; color:var(--text-1); font-weight:500; background:var(--glass-bg);
+    border:1px solid var(--glass-border); cursor:pointer; font-family:var(--font-body);
+    transition: all 0.2s ease;
+  }
+  .settings-btn:hover{ color:var(--text-0); background:var(--glass-bg-strong); border-color:var(--glass-border-strong); }
+  .settings-btn svg{ width:15px; height:15px; }
+
+  .view{ display:none; animation: viewin 0.4s ease; }
+  .view.active{ display:block; }
+  @keyframes viewin{ from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:none; } }
+
+  /* Dashboard */
+  .hero{ padding: 34px; margin-bottom:22px; position:relative; overflow:hidden; }
+  .hero-eyebrow{ font-size:12.5px; color:var(--teal); font-weight:600; margin-bottom:10px; }
+  .hero h2{ font-family:var(--font-display); font-size: clamp(24px,3.4vw,34px); line-height:1.18; margin:0 0 12px; max-width:640px; font-weight:700; letter-spacing:-0.3px; }
+  .hero p{ color:var(--text-1); max-width:540px; font-size:14.5px; line-height:1.65; margin:0 0 22px; }
+  .hero-stats{ display:flex; gap:34px; flex-wrap:wrap; }
+  .hero-stat b{ display:block; font-family:var(--font-mono); font-size:24px; font-weight:600; font-variant-numeric: tabular-nums; }
+  .hero-stat span{ font-size:12px; color:var(--text-2); }
+
+  .module-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:16px; margin-bottom:22px; }
+  .module-card{
+    padding:22px; cursor:pointer; transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+    display:flex; flex-direction:column; gap:12px; text-align:left;
+  }
+  .module-card:hover{ transform: translateY(-3px); border-color: var(--glass-border-strong); background: var(--glass-bg-strong); }
+  .module-icon{ width:42px; height:42px; border-radius:12px; display:flex; align-items:center; justify-content:center; }
+  .module-icon svg{ width:20px; height:20px; }
+  .icon-teal{ background:var(--teal-dim); color:var(--teal); }
+  .icon-violet{ background:var(--violet-dim); color:var(--violet); }
+  .icon-amber{ background:var(--amber-dim); color:var(--amber); }
+  .icon-red{ background:var(--red-dim); color:var(--red); }
+  .module-card h3{ font-family:var(--font-display); font-size:16px; margin:0; font-weight:600; }
+  .module-card p{ font-size:13px; color:var(--text-2); margin:0; line-height:1.55; }
+  .module-card .go{ font-size:12.5px; color:var(--text-1); display:flex; align-items:center; gap:6px; margin-top:auto; font-weight:500; }
+
+  .activity-panel{ padding:22px 24px; }
+  .activity-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; flex-wrap:wrap; gap:10px; }
+  .activity-panel h3{ font-family:var(--font-display); font-size:15px; margin:0; }
+  .activity-panel .hint{ font-size:12.5px; color:var(--text-2); margin:0 0 14px; }
+  .activity-row{ display:flex; align-items:center; gap:12px; padding:10px 0; border-top:1px solid var(--glass-border); font-size:13px; }
+  .activity-row:first-of-type{ border-top:none; }
+  .activity-row .tag{ font-size:11px; padding:3px 9px; border-radius:999px; font-weight:600; }
+  .activity-row .when{ margin-left:auto; color:var(--text-2); font-size:12px; }
+
+  .btn-sm{ padding:6px 12px; font-size:12px; border-radius:var(--radius-sm); border:1px solid var(--glass-border); background:rgba(255,255,255,0.04); color:var(--text-1); cursor:pointer; display:inline-flex; align-items:center; gap:6px; font-family:var(--font-body); }
+  .btn-sm:hover{ background:rgba(255,255,255,0.08); color:var(--text-0); }
+  .btn-sm svg{ width:14px; height:14px; }
+
+  /* Form layout shared */
+  .work-grid{ display:grid; grid-template-columns: minmax(0,1.05fr) minmax(0,0.95fr); gap:20px; align-items:start; }
+  @media (max-width:980px){ .work-grid{ grid-template-columns:1fr; } }
+  .panel{ padding:26px; }
+  .panel h2.ptitle{ font-family:var(--font-display); font-size:17px; margin:0 0 4px; font-weight:600; }
+  .panel .ptitle-sub{ font-size:13px; color:var(--text-2); margin:0 0 22px; }
+
+  .field{ margin-bottom:16px; }
+  .field label{ display:block; font-size:12.5px; color:var(--text-1); margin-bottom:7px; font-weight:500; }
+  .field .row2{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  input[type=text], input[type=number], input[type=password], select{
+    width:100%; padding:11px 13px; border-radius:var(--radius-sm); border:1px solid var(--glass-border);
+    background: rgba(255,255,255,0.03); color:var(--text-0); font-family:var(--font-body); font-size:14px;
+    outline:none; transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  input:focus, select:focus, textarea:focus{ border-color: var(--teal); background: rgba(42,217,168,0.05); }
+  input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible, .navitem:focus-visible{
+    outline: 2px solid var(--teal); outline-offset:2px;
+  }
+  select{ appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236e7893'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position: right 14px center; padding-right:32px; }
+  textarea{
+    width:100%; padding:12px 13px; border-radius:var(--radius-sm); border:1px solid var(--glass-border);
+    background: rgba(255,255,255,0.03); color:var(--text-0); font-family:var(--font-body); font-size:14px;
+    resize:vertical; min-height:80px; outline:none;
+  }
+  .field .err{ color:var(--red); font-size:11.5px; margin-top:6px; display:none; }
+  .field.invalid input, .field.invalid select{ border-color: var(--red); background: rgba(242,109,109,0.06); }
+  .field.invalid .err{ display:block; }
+  .hintline{ font-size:11.5px; color:var(--text-2); margin-top:6px; line-height:1.5; }
+
+  .slider-row{ display:flex; align-items:center; gap:12px; }
+  input[type=range]{ flex:1; accent-color: var(--teal); height:4px; }
+  .slider-val{ font-family:var(--font-mono); font-size:13px; min-width:64px; text-align:right; font-variant-numeric:tabular-nums; }
+
+  .seg{ display:flex; border:1px solid var(--glass-border); border-radius:var(--radius-sm); overflow:hidden; }
+  .seg button{ flex:1; padding:9px 10px; background:transparent; border:none; color:var(--text-1); font-size:12.5px; font-family:var(--font-body); cursor:pointer; font-weight:500; transition:all 0.15s ease; }
+  .seg button.on{ background: var(--teal-dim); color:var(--teal); }
+
+  .btn{
+    appearance:none; border:none; cursor:pointer; font-family:var(--font-body); font-weight:600; font-size:14px;
+    padding:13px 20px; border-radius:var(--radius-sm); display:inline-flex; align-items:center; gap:8px; justify-content:center;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease; width:100%;
+  }
+  .btn:active{ transform: scale(0.98); }
+  .btn-primary{ background: linear-gradient(135deg, var(--teal), #23b98f); color:#04120d; box-shadow: 0 10px 26px -12px rgba(42,217,168,0.55); }
+  .btn-ai{ background: linear-gradient(135deg, var(--violet), #6a5bd6); color:#0c0920; box-shadow: 0 10px 26px -12px rgba(140,124,240,0.55); }
+  .btn-ghost{ background: rgba(255,255,255,0.04); color:var(--text-0); border:1px solid var(--glass-border); }
+  .btn-ghost:hover{ background: rgba(255,255,255,0.08); }
+  .btn[disabled]{ opacity:0.55; cursor:not-allowed; }
+  .btn svg{ width:16px; height:16px; }
+
+  /* Results */
+  .result-empty{ display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:50px 20px; color:var(--text-2); gap:10px; min-height:280px; }
+  .result-empty svg{ width:34px; height:34px; opacity:0.5; }
+  .result-empty p{ font-size:13px; max-width:260px; line-height:1.6; margin:0; }
+
+  .badge{ display:inline-flex; align-items:center; gap:7px; padding:6px 13px; border-radius:999px; font-size:12.5px; font-weight:700; letter-spacing:0.2px; }
+  .badge-good{ background:var(--teal-dim); color:var(--teal); }
+  .badge-warn{ background:var(--amber-dim); color:var(--amber); }
+  .badge-bad{ background:var(--red-dim); color:var(--red); }
+
+  .kpi-row{ display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin:18px 0; }
+  .kpi{ padding:14px 16px; border-radius:var(--radius-md); background:rgba(255,255,255,0.03); border:1px solid var(--glass-border); }
+  .kpi span{ font-size:11.5px; color:var(--text-2); display:block; margin-bottom:5px; }
+  .kpi b{ font-family:var(--font-mono); font-size:18px; font-variant-numeric:tabular-nums; font-weight:600; }
+
+  .meter{ height:8px; border-radius:999px; background:rgba(255,255,255,0.06); overflow:hidden; margin-top:8px; }
+  .meter i{ display:block; height:100%; border-radius:999px; background: linear-gradient(90deg, var(--teal), #7fe8c8); transition: width 0.7s cubic-bezier(.2,.8,.2,1); width:0%; }
+
+  .factor-list{ margin-top:18px; display:flex; flex-direction:column; gap:9px; }
+  .factor{ display:flex; align-items:flex-start; gap:10px; font-size:13px; color:var(--text-1); padding:10px 12px; border-radius:var(--radius-sm); background:rgba(255,255,255,0.025); }
+  .factor svg{ width:15px; height:15px; flex-shrink:0; margin-top:2px; }
+  .factor.pos svg{ color:var(--teal); }
+  .factor.neg svg{ color:var(--red); }
+  .factor.neu svg{ color:var(--amber); }
+  .factor b{ color:var(--text-0); }
+
+  .ring-wrap{ display:flex; align-items:center; justify-content:center; gap:22px; flex-wrap:wrap; }
+  .ring{ position:relative; width:158px; height:158px; flex-shrink:0; }
+  .ring svg{ width:100%; height:100%; transform:rotate(-90deg); }
+  .ring circle{ fill:none; stroke-width:11; }
+  .ring .track{ stroke: rgba(255,255,255,0.06); }
+  .ring .prog{ stroke-linecap:round; transition: stroke-dashoffset 0.9s cubic-bezier(.2,.8,.2,1); }
+  .ring-center{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .ring-center b{ font-family:var(--font-mono); font-size:27px; font-variant-numeric:tabular-nums; }
+  .ring-center span{ font-size:11px; color:var(--text-2); margin-top:2px; }
+
+  .bar-list{ display:flex; flex-direction:column; gap:12px; flex:1; min-width:190px; }
+  .bar-item span{ font-size:12px; color:var(--text-1); display:flex; justify-content:space-between; margin-bottom:5px; }
+  .bar-item .track{ height:6px; border-radius:999px; background:rgba(255,255,255,0.06); overflow:hidden; }
+  .bar-item .track i{ display:block; height:100%; border-radius:999px; }
+
+  .amort-table{ width:100%; border-collapse:collapse; margin-top:16px; font-size:12.5px; }
+  .amort-table th{ text-align:right; color:var(--text-2); font-weight:500; padding:8px 10px; border-bottom:1px solid var(--glass-border); font-size:11.5px; }
+  .amort-table th:first-child, .amort-table td:first-child{ text-align:left; }
+  .amort-table td{ text-align:right; padding:9px 10px; border-bottom:1px solid rgba(255,255,255,0.05); font-family:var(--font-mono); font-variant-numeric:tabular-nums; color:var(--text-1); }
+  .amort-wrap{ overflow-x:auto; max-height:360px; }
+
+  .tips-list{ display:flex; flex-direction:column; gap:10px; margin-top:16px; }
+  .tip{ display:flex; gap:11px; padding:13px 14px; border-radius:var(--radius-sm); background:rgba(255,255,255,0.03); border:1px solid var(--glass-border); font-size:13px; color:var(--text-1); line-height:1.55; }
+  .tip svg{ width:15px; height:15px; color:var(--violet); flex-shrink:0; margin-top:2px; }
+
+  /* AI module */
+  .ai-profile-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
+  .ai-output{ min-height:120px; }
+  .ai-answer{ font-size:13.5px; line-height:1.7; color:var(--text-1); white-space:pre-wrap; }
+  .ai-answer ul{ margin:8px 0; padding-left:20px; }
+  .ai-answer li{ margin-bottom:6px; }
+  .ai-thinking{ display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--text-2); }
+  .dotflash{ display:inline-flex; gap:3px; }
+  .dotflash i{ width:5px; height:5px; border-radius:50%; background:var(--violet); animation:dotflash 1.1s ease infinite; }
+  .dotflash i:nth-child(2){ animation-delay:0.15s; } .dotflash i:nth-child(3){ animation-delay:0.3s; }
+  @keyframes dotflash{ 0%,60%,100%{ opacity:0.25; } 30%{ opacity:1; } }
+
+  .chat-thread{ display:flex; flex-direction:column; gap:10px; margin:16px 0; max-height:280px; overflow-y:auto; padding-right:4px; }
+  .msg{ padding:11px 14px; border-radius:var(--radius-sm); font-size:13px; line-height:1.6; max-width:92%; }
+  .msg.user{ align-self:flex-end; background: var(--teal-dim); color:var(--text-0); }
+  .msg.ai{ align-self:flex-start; background: rgba(255,255,255,0.04); border:1px solid var(--glass-border); color:var(--text-1); white-space:pre-wrap; }
+
+  .disclaimer{ font-size:11.5px; color:var(--text-2); line-height:1.6; margin-top:18px; padding-top:14px; border-top:1px solid var(--glass-border); }
+
+  /* Modal */
+  .modal-overlay{
+    position:fixed; inset:0; z-index:100; background:rgba(0,0,0,0.65);
+    backdrop-filter:blur(8px); display:none; align-items:center; justify-content:center; padding:20px;
+  }
+  .modal-overlay.open{ display:flex; }
+  .modal-card{
+    max-width:540px; width:100%; max-height:90vh; overflow-y:auto; padding:28px;
+    background: rgba(14,21,38,0.92); border:1px solid var(--glass-border-strong);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.8);
+  }
+  .modal-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; }
+  .modal-head h3{ font-family:var(--font-display); margin:0; font-size:18px; font-weight:700; }
+  .modal-close{ background:none; border:none; color:var(--text-2); cursor:pointer; font-size:22px; line-height:1; }
+  .modal-close:hover{ color:var(--text-0); }
+  .modal-section{ border-top:1px solid var(--glass-border); padding-top:18px; margin-top:18px; }
+  .modal-section h4{ margin:0 0 10px; font-size:13.5px; color:var(--teal); font-weight:600; }
+
+  /* Mobile */
+  @media (max-width:900px){
+    .sidebar{
+      position:fixed; left:0; top:0; height:100%; z-index:50; transform:translateX(-100%);
+      transition: transform 0.28s ease; box-shadow: 20px 0 50px rgba(0,0,0,0.5);
+    }
+    .sidebar.open{ transform:translateX(0); }
+    .main{ padding: 18px 16px 50px; width:100%; }
+    .menu-btn{
+      display:flex; align-items:center; justify-content:center; width:40px; height:40px; border-radius:11px;
+      background: rgba(255,255,255,0.05); border:1px solid var(--glass-border); color:var(--text-0); cursor:pointer;
+    }
+    .menu-btn svg{ width:18px; height:18px; }
+    .sidebar-backdrop{ display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:40; backdrop-filter: blur(2px); }
+    .sidebar-backdrop.show{ display:block; }
+    .hero{ padding:24px; }
+    .ai-profile-grid{ grid-template-columns:1fr; }
+  }
+
+  footer.appfoot{ text-align:center; color:var(--text-2); font-size:11.5px; padding:30px 0 10px; }
+</style>
+</head>
+<body>
+
+<div id="bg-mesh"><div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div></div>
+<div class="grain"></div>
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal-overlay" id="settingsModal">
+  <div class="glass modal-card">
+    <div class="modal-head">
+      <h3>Platform Settings</h3>
+      <button class="modal-close" id="closeSettingsBtn" aria-label="Close settings">&times;</button>
+    </div>
+    
+    <div>
+      <div class="modal-section" style="border-top:none; padding-top:0; margin-top:0;">
+        <h4>📊 Google Sheets Integration</h4>
+        <p class="hintline">Sync all loan calculations, credit assessments, and EMI schedules directly to your Google Sheet.</p>
+        <div class="field">
+          <label for="cfgSheetUrl">Google Apps Script Web App URL</label>
+          <input type="text" id="cfgSheetUrl" placeholder="https://script.google.com/macros/s/.../exec">
+          <div class="hintline">Refer to <code>google-apps-script.js</code> in this project to deploy your personal webhook.</div>
+        </div>
+        <div style="display:flex; gap:10px; margin-top:10px;">
+          <button type="button" class="btn-sm" id="testSheetBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg>
+            Test Sheets Connection
+          </button>
+          <span id="sheetTestMsg" style="font-size:12px; align-self:center;"></span>
+        </div>
+      </div>
+
+      <div class="modal-section">
+        <h4>🤖 AI Engine Configuration</h4>
+        <p class="hintline">Choose your reasoning engine for AI Financial Tips and contextual Q&A.</p>
+        <div class="field">
+          <label for="cfgAiProvider">AI Provider</label>
+          <select id="cfgAiProvider">
+            <option value="smart-local">Built-in BFSI Expert Engine (Offline, Instant)</option>
+            <option value="claude">Anthropic Claude API (Claude 3.5 Sonnet / Haiku)</option>
+            <option value="gemini">Google Gemini API (Gemini 1.5 / 2.0 Flash)</option>
+          </select>
+        </div>
+        <div class="field" id="cfgApiKeyField" style="display:none;">
+          <label for="cfgApiKey">API Key</label>
+          <input type="password" id="cfgApiKey" placeholder="sk-ant-... or AIzaSy...">
+          <div class="hintline">Keys are saved locally in your browser's private storage (<code>localStorage</code>) and never exposed.</div>
+        </div>
+      </div>
+
+      <div class="modal-section">
+        <h4>💾 Data Management</h4>
+        <p class="hintline">Export or reset calculation logs stored in this browser session.</p>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button type="button" class="btn-sm" id="exportCsvBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export All Records (CSV)
+          </button>
+          <button type="button" class="btn-sm" id="clearLocalBtn" style="color:var(--red);">Clear Local History</button>
+        </div>
+      </div>
+
+      <div style="margin-top:24px;">
+        <button type="button" class="btn btn-primary" id="saveSettingsBtn">Save & Apply Changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="shell">
+  <aside class="sidebar glass" id="sidebar">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#08110d" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>
+      </div>
+      <div>
+        <div class="brand-name">FitToLend</div>
+        <div class="brand-sub">Financial decision platform</div>
+      </div>
+    </div>
+
+    <nav class="navlist">
+      <div class="navgroup-label">Workspace</div>
+      <button class="navitem active" data-view="dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+        Overview <span class="dot"></span>
+      </button>
+      <div class="navgroup-label">Modules</div>
+      <button class="navitem" data-view="loan">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="6" width="20" height="13" rx="2"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>
+        Loan Eligibility <span class="dot"></span>
+      </button>
+      <button class="navitem" data-view="credit">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/></svg>
+        Credit Score <span class="dot"></span>
+      </button>
+      <button class="navitem" data-view="emi">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+        EMI Calculator <span class="dot"></span>
+      </button>
+      <button class="navitem" data-view="ai">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l1.8 4.6L18 9l-4.2 1.4L12 15l-1.8-4.6L6 9l4.2-1.4L12 3z"/><path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9L19 15z"/></svg>
+        AI Financial Tips <span class="dot"></span>
+      </button>
+    </nav>
+
+    <div class="sidebar-foot">
+      <button class="settings-btn" id="sidebarSettingsBtn" style="width:100%; justify-content:center; border-radius:var(--radius-md); padding:10px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Configure Integrations
+      </button>
+      <div class="privacy-chip glass">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 018 0v3"/></svg>
+        <span>Data is stored privately in your session and synced to your own Google Sheet.</span>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <button class="menu-btn" id="menuBtn" aria-label="Open menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        </button>
+        <div>
+          <h1 id="pageTitle">Overview</h1>
+          <div class="sub" id="pageSub">Your snapshot across all four modules</div>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <div class="status-pill glass" id="topbarStatusPill" title="Click to configure Google Sheets & AI">
+          <span class="pulse"></span> <span id="statusPillText">Local Storage Active</span>
+        </div>
+        <button class="settings-btn" id="topbarSettingsBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Settings
+        </button>
+      </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <section class="view active" id="view-dashboard">
+      <div class="hero glass">
+        <div class="hero-eyebrow">AI-POWERED BFSI TOOLKIT</div>
+        <h2>See where you stand before a bank does.</h2>
+        <p>Check loan eligibility, estimate your credit score, plan EMIs, and get AI-guided next steps — all in one private workspace with real-time reasoning and Google Sheets synchronization.</p>
+        <div class="hero-stats">
+          <div class="hero-stat"><b data-count="4">0</b><span>Decision modules</span></div>
+          <div class="hero-stat"><b data-count="600">0</b><span>Credit score range covered</span></div>
+          <div class="hero-stat"><b data-count="100">0</b><span>% calculated in your session</span></div>
+        </div>
+      </div>
+
+      <div class="module-grid">
+        <button class="module-card glass" data-view="loan">
+          <div class="module-icon icon-teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="6" width="20" height="13" rx="2"/><path d="M2 10h20"/><path d="M6 15h4"/></svg></div>
+          <h3>Loan Eligibility Checker</h3>
+          <p>Enter income, age, credit score and employment details to see what you'd likely qualify for.</p>
+          <span class="go">Open module →</span>
+        </button>
+        <button class="module-card glass" data-view="credit">
+          <div class="module-icon icon-violet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/></svg></div>
+          <h3>Credit Score Analyzer</h3>
+          <p>Get an estimated score and a breakdown of what's helping or hurting it, plus a risk read.</p>
+          <span class="go">Open module →</span>
+        </button>
+        <button class="module-card glass" data-view="emi">
+          <div class="module-icon icon-amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div>
+          <h3>EMI Calculator</h3>
+          <p>Real-time monthly instalment, total interest, and a year-by-year payoff breakdown.</p>
+          <span class="go">Open module →</span>
+        </button>
+        <button class="module-card glass" data-view="ai">
+          <div class="module-icon icon-red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l1.8 4.6L18 9l-4.2 1.4L12 15l-1.8-4.6L6 9l4.2-1.4L12 3z"/></svg></div>
+          <h3>AI Financial Tips</h3>
+          <p>Personalized guidance and interactive conversational advice built from your assessments.</p>
+          <span class="go">Open module →</span>
+        </button>
+      </div>
+
+      <div class="activity-panel glass">
+        <div class="activity-head">
+          <div>
+            <h3>Recent activity & persistence log</h3>
+            <p class="hint" style="margin-bottom:0;">Calculations from this session saved to your workspace and synced with Google Sheets.</p>
+          </div>
+          <button class="btn-sm" id="dashboardExportBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export Sheet
+          </button>
+        </div>
+        <div id="activityList">
+          <div class="activity-row" style="color:var(--text-2); border-top:none;">Nothing yet — run a module to see it appear here.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- LOAN ELIGIBILITY -->
+    <section class="view" id="view-loan">
+      <div class="work-grid">
+        <div class="panel glass">
+          <h2 class="ptitle">Loan Eligibility Checker</h2>
+          <p class="ptitle-sub">Based on your income, obligations, age, employment and credit score.</p>
+          <form id="loanForm" novalidate>
+            <div class="field">
+              <label for="loanIncome">Monthly net income (₹)</label>
+              <input type="number" id="loanIncome" min="1" step="1" placeholder="e.g. 65000" required>
+              <div class="err">Enter a monthly income greater than ₹0.</div>
+            </div>
+            <div class="field">
+              <label for="loanObligations">Existing monthly obligations / EMIs (₹)</label>
+              <input type="number" id="loanObligations" min="0" step="1" placeholder="e.g. 8000">
+              <div class="err">Enter 0 or a positive amount.</div>
+            </div>
+            <div class="field row2">
+              <div>
+                <label for="loanAmount">Desired loan amount (₹)</label>
+                <input type="number" id="loanAmount" min="1" step="1" placeholder="e.g. 2500000" required>
+                <div class="err">Enter the loan amount you want.</div>
+              </div>
+              <div>
+                <label for="loanTenure">Tenure (years)</label>
+                <input type="number" id="loanTenure" min="1" max="30" step="1" placeholder="e.g. 20" required>
+                <div class="err">Tenure must be between 1 and 30 years.</div>
+              </div>
+            </div>
+            <div class="field row2">
+              <div>
+                <label for="loanRate">Interest rate (% p.a.)</label>
+                <input type="number" id="loanRate" min="1" max="36" step="0.05" value="10.5" required>
+                <div class="err">Enter a rate between 1% and 36%.</div>
+              </div>
+              <div>
+                <label for="loanCredit">Credit score (300–900)</label>
+                <input type="number" id="loanCredit" min="300" max="900" step="1" placeholder="e.g. 740" required>
+                <div class="err">Score must be between 300 and 900.</div>
+              </div>
+            </div>
+            <div class="field row2">
+              <div>
+                <label for="loanAge">Your age</label>
+                <input type="number" id="loanAge" min="18" max="70" step="1" placeholder="e.g. 32" required>
+                <div class="err">Age must be between 18 and 70.</div>
+              </div>
+              <div>
+                <label for="loanExistingCount">Active existing loans</label>
+                <input type="number" id="loanExistingCount" min="0" max="10" step="1" value="0" required>
+                <div class="err">Enter a number between 0 and 10.</div>
+              </div>
+            </div>
+            <div class="field">
+              <label for="loanEmployment">Employment type</label>
+              <select id="loanEmployment" required>
+                <option value="">Select employment type</option>
+                <option value="govt">Salaried — Government / PSU</option>
+                <option value="private">Salaried — Private sector</option>
+                <option value="self-prof">Self-employed — Professional</option>
+                <option value="self-biz">Self-employed — Business owner</option>
+                <option value="unemployed">Unemployed / Student</option>
+              </select>
+              <div class="err">Select your employment type.</div>
+            </div>
+            <button type="submit" class="btn btn-primary">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg>
+              Check eligibility & sync
+            </button>
+          </form>
+        </div>
+
+        <div class="panel glass" id="loanResultPanel">
+          <div class="result-empty" id="loanEmpty">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="6" width="20" height="13" rx="2"/><path d="M2 10h20"/></svg>
+            <p>Fill in the form and check eligibility to see your estimated loan outcome here.</p>
+          </div>
+          <div id="loanResult" style="display:none;"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CREDIT SCORE -->
+    <section class="view" id="view-credit">
+      <div class="work-grid">
+        <div class="panel glass">
+          <h2 class="ptitle">Credit Score Analyzer</h2>
+          <p class="ptitle-sub">Already know your bureau score, or want an estimate from your credit behaviour?</p>
+          <div class="seg" style="margin-bottom:20px;">
+            <button type="button" id="segKnown" class="on">I know my score</button>
+            <button type="button" id="segEstimate">Estimate it for me</button>
+          </div>
+
+          <form id="creditForm" novalidate>
+            <div id="knownBlock">
+              <div class="field">
+                <label for="knownScore">Your current credit score (300–900)</label>
+                <input type="number" id="knownScore" min="300" max="900" step="1" placeholder="e.g. 782">
+                <div class="err">Score must be between 300 and 900.</div>
+              </div>
+            </div>
+
+            <div id="estimateBlock" style="display:none;">
+              <div class="field">
+                <label for="payHistory">Payment history (last 12 months)</label>
+                <select id="payHistory">
+                  <option value="ontime">Always paid on time (Optimal)</option>
+                  <option value="minor">Missed 1–2 payments (Fair)</option>
+                  <option value="major">Missed 3 or more payments (High Risk)</option>
+                  <option value="default">Frequent defaults / NPA</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="utilization">Credit utilization (% of limit used)</label>
+                <div class="slider-row">
+                  <input type="range" id="utilization" min="0" max="100" value="30">
+                  <span class="slider-val" id="utilizationVal">30%</span>
+                </div>
+              </div>
+              <div class="field row2">
+                <div>
+                  <label for="creditAge">Credit history age (years)</label>
+                  <input type="number" id="creditAge" min="0" max="40" step="1" value="4">
+                </div>
+                <div>
+                  <label for="accounts">Open accounts / cards</label>
+                  <input type="number" id="accounts" min="0" max="20" step="1" value="3">
+                </div>
+              </div>
+              <div class="field">
+                <label for="inquiries">Hard inquiries in last 6 months</label>
+                <input type="number" id="inquiries" min="0" max="20" step="1" value="1">
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 15l4-6 3 3 5-8"/></svg>
+              Analyze credit score & sync
+            </button>
+          </form>
+        </div>
+
+        <div class="panel glass" id="creditResultPanel">
+          <div class="result-empty" id="creditEmpty">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/></svg>
+            <p>Your score gauge, factor breakdown and risk read will appear here.</p>
+          </div>
+          <div id="creditResult" style="display:none;"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- EMI CALCULATOR -->
+    <section class="view" id="view-emi">
+      <div class="work-grid">
+        <div class="panel glass">
+          <h2 class="ptitle">EMI Calculator</h2>
+          <p class="ptitle-sub">Updates instantly as you adjust the sliders or enter figures.</p>
+          <div class="field">
+            <label for="emiAmount">Loan amount (₹)</label>
+            <input type="number" id="emiAmount" min="1000" step="1000" value="2500000">
+            <div class="slider-row" style="margin-top:8px;">
+              <input type="range" id="emiAmountSlider" min="50000" max="20000000" step="10000" value="2500000">
+            </div>
+          </div>
+          <div class="field">
+            <label for="emiRate">Interest rate (% p.a.)</label>
+            <input type="number" id="emiRate" min="1" max="36" step="0.05" value="9.5">
+            <div class="slider-row" style="margin-top:8px;">
+              <input type="range" id="emiRateSlider" min="1" max="24" step="0.05" value="9.5">
+            </div>
+          </div>
+          <div class="field">
+            <label for="emiTenure">Tenure</label>
+            <div class="seg" style="margin-bottom:10px;">
+              <button type="button" id="segYears" class="on">Years</button>
+              <button type="button" id="segMonths">Months</button>
+            </div>
+            <input type="number" id="emiTenure" min="1" max="30" step="1" value="20">
+            <div class="slider-row" style="margin-top:8px;">
+              <input type="range" id="emiTenureSlider" min="1" max="30" step="1" value="20">
+            </div>
+          </div>
+          <button type="button" class="btn btn-ghost" id="emiSaveBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            Save & Sync EMI Calculation
+          </button>
+        </div>
+
+        <div class="panel glass" id="emiResultPanel">
+          <h2 class="ptitle">Repayment breakdown</h2>
+          <p class="ptitle-sub">Principal vs. interest distribution over the tenure.</p>
+          <div class="ring-wrap">
+            <div class="ring">
+              <svg viewBox="0 0 140 140">
+                <circle class="track" cx="70" cy="70" r="58"></circle>
+                <circle class="prog" id="emiRingPrincipal" cx="70" cy="70" r="58" stroke="#2ad9a8"></circle>
+                <circle class="prog" id="emiRingInterest" cx="70" cy="70" r="58" stroke="#f0a857"></circle>
+              </svg>
+              <div class="ring-center"><b id="emiMonthlyBig">₹0</b><span>per month</span></div>
+            </div>
+            <div class="bar-list">
+              <div class="bar-item">
+                <span><span style="color:var(--teal);">● Principal portion</span><b id="emiPrincipalPct">0%</b></span>
+                <div class="track"><i id="emiPrincipalBar" style="width:0%; background:var(--teal);"></i></div>
+              </div>
+              <div class="bar-item">
+                <span><span style="color:var(--amber);">● Total interest</span><b id="emiInterestPct">0%</b></span>
+                <div class="track"><i id="emiInterestBar" style="width:0%; background:var(--amber);"></i></div>
+              </div>
+            </div>
+          </div>
+          <div class="kpi-row">
+            <div class="kpi"><span>Monthly EMI</span><b id="kpiEmi">—</b></div>
+            <div class="kpi"><span>Total interest payable</span><b id="kpiInterest">—</b></div>
+            <div class="kpi"><span>Total payment</span><b id="kpiTotal">—</b></div>
+            <div class="kpi"><span>Loan-to-income guidance</span><b id="kpiGuidance" style="font-size:14px; font-family:var(--font-body);">—</b></div>
+          </div>
+          <div class="amort-wrap">
+            <table class="amort-table" id="amortTable">
+              <thead><tr><th>Year</th><th>Principal paid</th><th>Interest paid</th><th>Balance remaining</th></tr></thead>
+              <tbody id="amortBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- AI FINANCIAL TIPS -->
+    <section class="view" id="view-ai">
+      <div class="work-grid">
+        <div class="panel glass">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
+            <h2 class="ptitle" style="margin-bottom:0;">Financial Profile</h2>
+            <span class="badge badge-good" id="aiEngineBadge" style="font-size:11px;">Built-in AI</span>
+          </div>
+          <p class="ptitle-sub">Auto-filled from other modules where available — adjust anything before asking.</p>
+          <div class="ai-profile-grid">
+            <div class="field">
+              <label for="aiIncome">Monthly income (₹)</label>
+              <input type="number" id="aiIncome" min="0" step="1000" placeholder="e.g. 65000">
+            </div>
+            <div class="field">
+              <label for="aiExpenses">Monthly expenses (₹)</label>
+              <input type="number" id="aiExpenses" min="0" step="1000" placeholder="e.g. 35000">
+            </div>
+            <div class="field">
+              <label for="aiGoal">Primary goal</label>
+              <select id="aiGoal">
+                <option value="home">Buy a home</option>
+                <option value="emergency">Build an emergency fund</option>
+                <option value="debt">Reduce / pay off high-cost debt</option>
+                <option value="invest">Grow long-term wealth</option>
+                <option value="retire">Plan for retirement</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="aiRisk">Risk appetite</label>
+              <select id="aiRisk">
+                <option value="low">Conservative (Low risk)</option>
+                <option value="medium" selected>Balanced (Moderate risk)</option>
+                <option value="high">Aggressive (High growth)</option>
+              </select>
+            </div>
+          </div>
+          <div class="hintline" id="aiContextHint">No saved calculations yet — figures from the Loan, Credit and EMI modules will show up here automatically.</div>
+          <button type="button" class="btn btn-ai" id="aiTipsBtn" style="margin-top:18px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.8 4.6L18 9l-4.2 1.4L12 15l-1.8-4.6L6 9l4.2-1.4L12 3z"/></svg>
+            Generate AI Insights
+          </button>
+
+          <div class="field" style="margin-top:22px;">
+            <label for="aiQuestion">Ask a follow-up financial question</label>
+            <textarea id="aiQuestion" placeholder="e.g. Should I prepay my loan or invest in an index fund? How much emergency fund do I need?"></textarea>
+          </div>
+          <button type="button" class="btn btn-ghost" id="aiAskBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            Ask FitToLend
+          </button>
+        </div>
+
+        <div class="panel glass">
+          <h2 class="ptitle">AI Recommendations & Q&A</h2>
+          <p class="ptitle-sub">Contextual advice synthesized from your BFSI assessment.</p>
+          <div class="ai-output" id="aiOutput">
+            <div class="result-empty" id="aiEmpty" style="min-height:160px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3l1.8 4.6L18 9l-4.2 1.4L12 15l-1.8-4.6L6 9l4.2-1.4L12 3z"/></svg>
+              <p>Click "Generate AI Insights" or ask a custom question to get personalized financial guidance.</p>
+            </div>
+          </div>
+          <div class="chat-thread" id="chatThread"></div>
+          <div class="disclaimer">FitToLend delivers educational, general-purpose analysis based on user inputs. It is not an officially licensed financial planner or SEBI registered advisor. Always consult qualified banking or financial professionals before finalizing binding commitments.</div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="appfoot">FitToLend · AI-Powered Financial Decision Platform · Data synced privately to your Google Sheets</footer>
+  </main>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ============ Configuration & Persistence ============ */
+  const CONFIG_KEY = 'fit_to_lend_config';
+  const STORAGE_KEY = 'fit_to_lend_records';
+
+  function loadConfig(){
+    try{
+      const raw = localStorage.getItem(CONFIG_KEY);
+      return raw ? JSON.parse(raw) : {
+        sheetUrl: '',
+        aiProvider: 'smart-local', // 'smart-local' | 'claude' | 'gemini'
+        apiKey: ''
+      };
+    }catch(e){
+      return { sheetUrl: '', aiProvider: 'smart-local', apiKey: '' };
+    }
+  }
+
+  function saveConfig(cfg){
+    localStorage.setItem(CONFIG_KEY, JSON.stringify(cfg));
+    updateConfigUI();
+  }
+
+  let currentConfig = loadConfig();
+
+  function updateConfigUI(){
+    const pill = document.getElementById('topbarStatusPill');
+    const text = document.getElementById('statusPillText');
+    const badge = document.getElementById('aiEngineBadge');
+
+    if(currentConfig.sheetUrl){
+      pill.classList.remove('offline');
+      text.textContent = 'Sheets Synced';
+    } else {
+      pill.classList.add('offline');
+      text.textContent = 'Local Mode (Sheets unlinked)';
+    }
+
+    if(currentConfig.aiProvider === 'claude'){
+      badge.textContent = 'Claude AI';
+      badge.className = 'badge badge-good';
+    } else if(currentConfig.aiProvider === 'gemini'){
+      badge.textContent = 'Gemini AI';
+      badge.className = 'badge badge-good';
+    } else {
+      badge.textContent = 'Built-in BFSI Engine';
+      badge.className = 'badge badge-warn';
+    }
+  }
+
+  /* ============ Navigation ============ */
+  const views = ["dashboard","loan","credit","emi","ai"];
+  const titles = {
+    dashboard:["Overview","Your snapshot across all four modules"],
+    loan:["Loan Eligibility Checker","Estimate what you could qualify for"],
+    credit:["Credit Score Analyzer","Understand and improve your score"],
+    emi:["EMI Calculator","Plan your monthly repayments"],
+    ai:["AI Financial Tips","Personalized guidance based on your numbers"]
+  };
+  function showView(name){
+    views.forEach(v=>{
+      document.getElementById('view-'+v).classList.toggle('active', v===name);
+    });
+    document.querySelectorAll('.navitem').forEach(n=>n.classList.toggle('active', n.dataset.view===name));
+    document.getElementById('pageTitle').textContent = titles[name][0];
+    document.getElementById('pageSub').textContent = titles[name][1];
+    closeSidebar();
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+  document.querySelectorAll('[data-view]').forEach(el=>{
+    el.addEventListener('click', ()=> showView(el.dataset.view));
+  });
+
+  const sidebar = document.getElementById('sidebar');
+  const backdrop = document.getElementById('sidebarBackdrop');
+  function openSidebar(){ sidebar.classList.add('open'); backdrop.classList.add('show'); }
+  function closeSidebar(){ sidebar.classList.remove('open'); backdrop.classList.remove('show'); }
+  document.getElementById('menuBtn').addEventListener('click', openSidebar);
+  backdrop.addEventListener('click', closeSidebar);
+
+  /* ============ Settings Modal Handlers ============ */
+  const settingsModal = document.getElementById('settingsModal');
+  function openSettings(){
+    document.getElementById('cfgSheetUrl').value = currentConfig.sheetUrl || '';
+    document.getElementById('cfgAiProvider').value = currentConfig.aiProvider || 'smart-local';
+    document.getElementById('cfgApiKey').value = currentConfig.apiKey || '';
+    document.getElementById('sheetTestMsg').textContent = '';
+    toggleApiKeyField();
+    settingsModal.classList.add('open');
+  }
+  function closeSettings(){
+    settingsModal.classList.remove('open');
+  }
+  function toggleApiKeyField(){
+    const prov = document.getElementById('cfgAiProvider').value;
+    document.getElementById('cfgApiKeyField').style.display = (prov === 'smart-local') ? 'none' : 'block';
+  }
+
+  document.getElementById('topbarSettingsBtn').addEventListener('click', openSettings);
+  document.getElementById('sidebarSettingsBtn').addEventListener('click', openSettings);
+  document.getElementById('topbarStatusPill').addEventListener('click', openSettings);
+  document.getElementById('closeSettingsBtn').addEventListener('click', closeSettings);
+  document.getElementById('cfgAiProvider').addEventListener('change', toggleApiKeyField);
+  
+  settingsModal.addEventListener('click', (e)=>{
+    if(e.target === settingsModal) closeSettings();
+  });
+
+  document.getElementById('saveSettingsBtn').addEventListener('click', ()=>{
+    currentConfig.sheetUrl = document.getElementById('cfgSheetUrl').value.trim();
+    currentConfig.aiProvider = document.getElementById('cfgAiProvider').value;
+    currentConfig.apiKey = document.getElementById('cfgApiKey').value.trim();
+    saveConfig(currentConfig);
+    closeSettings();
+  });
+
+  // Test Google Sheets Connection
+  document.getElementById('testSheetBtn').addEventListener('click', async ()=>{
+    const url = document.getElementById('cfgSheetUrl').value.trim();
+    const msgEl = document.getElementById('sheetTestMsg');
+    if(!url){
+      msgEl.textContent = 'Please enter a URL first.';
+      msgEl.style.color = 'var(--red)';
+      return;
+    }
+    msgEl.textContent = 'Testing webhook...';
+    msgEl.style.color = 'var(--text-2)';
+    try{
+      await fetch(url, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ module: 'ConnectionTest', summary: 'FitToLend Webhook Verification Ping' })
+      });
+      msgEl.textContent = 'Ping dispatched successfully!';
+      msgEl.style.color = 'var(--teal)';
+    }catch(err){
+      msgEl.textContent = 'Network error or invalid URL: ' + err.message;
+      msgEl.style.color = 'var(--red)';
+    }
+  });
+
+  /* ============ Formatters & Math Helpers ============ */
+  const fmtINR = n => '₹' + Math.round(n).toLocaleString('en-IN');
+  const clamp = (n,lo,hi) => Math.max(lo, Math.min(hi,n));
+
+  function setFieldError(id, invalid){
+    const input = document.getElementById(id);
+    const field = input.closest('.field');
+    if(field) field.classList.toggle('invalid', invalid);
+  }
+  function validateField(id, condition){
+    const invalid = !condition;
+    setFieldError(id, invalid);
+    return !invalid;
+  }
+
+  function animateCount(el){
+    const target = parseFloat(el.dataset.count);
+    const dur = 1100; const start = performance.now();
+    function step(t){
+      const p = clamp((t-start)/dur, 0, 1);
+      const eased = 1 - Math.pow(1-p, 3);
+      el.textContent = Math.round(target*eased).toLocaleString('en-IN');
+      if(p<1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+  document.querySelectorAll('[data-count]').forEach(animateCount);
+
+  /* ============ Shared state & Storage ============ */
+  const state = { loan:null, credit:null, emi:null };
+
+  function loadLocalRecords(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    }catch(e){
+      return [];
+    }
+  }
+
+  function saveRecordLocally(record){
+    const list = loadLocalRecords();
+    list.unshift(record);
+    if(list.length > 50) list.pop(); // keep last 50
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+  }
+
+  async function persistRecord(module, payload){
+    const record = {
+      id: module + '-' + Date.now(),
+      module,
+      timestamp: new Date().toISOString(),
+      ...payload
+    };
+
+    // Save locally
+    saveRecordLocally(record);
+
+    // Save to Google Sheets if configured
+    if(currentConfig.sheetUrl){
+      try{
+        fetch(currentConfig.sheetUrl, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(record)
+        }).catch(()=>{});
+      }catch(e){}
+    }
+  }
+
+  function pushActivity(module, label, tag, tagClass){
+    const list = document.getElementById('activityList');
+    if(list.children.length===1 && list.children[0].textContent.startsWith('Nothing yet')){
+      list.innerHTML='';
+    }
+    const row = document.createElement('div');
+    row.className='activity-row';
+    row.innerHTML = `<span class="tag ${tagClass}">${tag}</span> <span>${label}</span> <span class="when">Just now</span>`;
+    list.prepend(row);
+    while(list.children.length>6) list.removeChild(list.lastChild);
+  }
+
+  function updateAiHint(){
+    const parts=[];
+    if(state.loan) parts.push(`Loan: ${fmtINR(state.loan.eligibleAmount)} eligible at ${state.loan.rate}% for ${state.loan.tenure}y (${state.loan.status}).`);
+    if(state.credit) parts.push(`Credit: ~${state.credit.score} (${state.credit.category}).`);
+    if(state.emi) parts.push(`EMI: ${fmtINR(state.emi.emi)}/mo on ${fmtINR(state.emi.principal)}.`);
+    document.getElementById('aiContextHint').textContent = parts.length ? parts.join(' | ') : 'No saved calculations yet — figures from the Loan, Credit and EMI modules will show up here automatically.';
+    if(state.loan && !document.getElementById('aiIncome').value){
+      document.getElementById('aiIncome').value = state.loan.income;
+    }
+  }
+
+  /* CSV Export */
+  function exportRecordsToCSV(){
+    const records = loadLocalRecords();
+    if(!records.length){
+      alert('No calculation records found to export yet. Run a module first!');
+      return;
+    }
+    const headers = ["Timestamp","Module","Monthly Income","Monthly Obligations","Loan Amount","Tenure","Rate","Credit Score","Eligible Amount","Monthly EMI","Status","Summary"];
+    const rows = records.map(r => [
+      `"${r.timestamp || ''}"`,
+      `"${r.module || ''}"`,
+      `"${r.income || ''}"`,
+      `"${r.obligations || ''}"`,
+      `"${r.loanAmount || r.principal || ''}"`,
+      `"${r.tenure || ''}"`,
+      `"${r.rate || ''}"`,
+      `"${r.creditScore || r.score || ''}"`,
+      `"${r.eligibleAmount || ''}"`,
+      `"${r.emi || ''}"`,
+      `"${r.status || r.category || ''}"`,
+      `"${(r.summary || '').replace(/"/g, '""')}"`
+    ]);
+    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `FitToLend_Records_${Date.now()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  document.getElementById('dashboardExportBtn').addEventListener('click', exportRecordsToCSV);
+  document.getElementById('exportCsvBtn').addEventListener('click', exportRecordsToCSV);
+  document.getElementById('clearLocalBtn').addEventListener('click', ()=>{
+    if(confirm('Are you sure you want to clear all local calculation history?')){
+      localStorage.removeItem(STORAGE_KEY);
+      document.getElementById('activityList').innerHTML = '<div class="activity-row" style="color:var(--text-2); border-top:none;">Nothing yet — run a module to see it appear here.</div>';
+      alert('Local history cleared.');
+    }
+  });
+
+  /* ============ MODULE 1: LOAN ELIGIBILITY ============ */
+  const loanForm = document.getElementById('loanForm');
+  loanForm.addEventListener('submit', function(e){
+    e.preventDefault();
+    const income = parseFloat(document.getElementById('loanIncome').value);
+    const obligations = parseFloat(document.getElementById('loanObligations').value) || 0;
+    const amount = parseFloat(document.getElementById('loanAmount').value);
+    const tenure = parseInt(document.getElementById('loanTenure').value);
+    const rate = parseFloat(document.getElementById('loanRate').value);
+    const credit = parseInt(document.getElementById('loanCredit').value);
+    const age = parseInt(document.getElementById('loanAge').value);
+    const existingCount = parseInt(document.getElementById('loanExistingCount').value);
+    const employment = document.getElementById('loanEmployment').value;
+
+    let ok = true;
+    ok = validateField('loanIncome', income>0) && ok;
+    ok = validateField('loanObligations', obligations>=0) && ok;
+    ok = validateField('loanAmount', amount>0) && ok;
+    ok = validateField('loanTenure', tenure>=1 && tenure<=30) && ok;
+    ok = validateField('loanRate', rate>=1 && rate<=36) && ok;
+    ok = validateField('loanCredit', credit>=300 && credit<=900) && ok;
+    ok = validateField('loanAge', age>=18 && age<=70) && ok;
+    ok = validateField('loanExistingCount', existingCount>=0 && existingCount<=10) && ok;
+    ok = validateField('loanEmployment', !!employment) && ok;
+    if(!ok) return;
+
+    const result = computeLoanEligibility({income,obligations,amount,tenure,rate,credit,age,existingCount,employment});
+    renderLoanResult(result);
+    state.loan = { eligibleAmount: result.eligibleAmount, rate, tenure, status: result.statusLabel, income, obligations };
+    updateAiHint();
+    pushActivity('loan', `Loan eligibility: ${result.statusLabel} for ${fmtINR(result.eligibleAmount)}`, result.statusLabel, result.badgeClass);
+    
+    persistRecord('Loan_Eligibility', {
+      income, obligations, loanAmount: amount, tenure, rate, creditScore: credit,
+      eligibleAmount: result.eligibleAmount, emi: result.recommendedEmi,
+      status: result.statusLabel,
+      summary: `Eligible for ${fmtINR(result.eligibleAmount)} (${result.confidence}% confidence)`
+    });
+  });
+
+  function computeLoanEligibility(d){
+    const factors = [];
+
+    // Employment gate
+    if(d.employment==='unemployed'){
+      return {
+        statusLabel:'Not Eligible', badgeClass:'badge-bad',
+        eligibleAmount:0, recommendedEmi:0, confidence:8,
+        factors:[{type:'neg', text:'Lenders generally require a verifiable, ongoing income source to underwrite a loan.'}]
+      };
+    }
+
+    // FOIR band by income
+    let maxFOIR = 0.40;
+    if(d.income>=100000) maxFOIR=0.65;
+    else if(d.income>=50000) maxFOIR=0.55;
+    else if(d.income>=20000) maxFOIR=0.45;
+    const maxAffordableEmi = Math.max(0, d.income*maxFOIR - d.obligations);
+    factors.push({type: maxAffordableEmi>0?'pos':'neg', text:`At ${(maxFOIR*100).toFixed(0)}% FOIR minus obligations, you can comfortably afford ~${fmtINR(maxAffordableEmi)}/month in EMI.`});
+
+    // Retirement-age based max tenure
+    const retirementAge = (d.employment==='self-prof' || d.employment==='self-biz') ? 65 : 60;
+    const maxTenureByAge = Math.max(1, retirementAge - d.age);
+    const effectiveTenure = Math.min(d.tenure, maxTenureByAge);
+    if(effectiveTenure < d.tenure){
+      factors.push({type:'neu', text:`Your requested ${d.tenure}-year tenure was capped to ${effectiveTenure} years to complete repayment by age ${retirementAge}.`});
+    } else {
+      factors.push({type:'pos', text:`Your requested ${d.tenure}-year tenure fits comfortably within your working career.`});
+    }
+
+    // Max eligible principal from affordable EMI
+    const r = d.rate/12/100;
+    const n = effectiveTenure*12;
+    let maxPrincipal = r===0 ? maxAffordableEmi*n : maxAffordableEmi*(Math.pow(1+r,n)-1)/(r*Math.pow(1+r,n));
+
+    // Credit score adjustment
+    let creditMultiplier = 1;
+    if(d.credit<650){ creditMultiplier=0.55; factors.push({type:'neg', text:`Credit score of ${d.credit} is below 650, which triggers risk premiums and reduced limits.`}); }
+    else if(d.credit<700){ creditMultiplier=0.8; factors.push({type:'neu', text:`Credit score of ${d.credit} is fair — approvals may come with slightly higher rates.`}); }
+    else if(d.credit<750){ creditMultiplier=0.92; factors.push({type:'pos', text:`Credit score of ${d.credit} is solid and qualifies for near-standard loan terms.`}); }
+    else { creditMultiplier=1; factors.push({type:'pos', text:`Credit score of ${d.credit} is prime — you qualify for top-tier interest rates.`}); }
+    maxPrincipal *= creditMultiplier;
+
+    // Existing active loans
+    if(d.existingCount>=4){ maxPrincipal*=0.85; factors.push({type:'neg', text:`${d.existingCount} active credit facilities raise debt-to-income sensitivity.`}); }
+    else if(d.existingCount>=1){ factors.push({type:'neu', text:`${d.existingCount} active loan(s) factored into current obligations.`}); }
+
+    // Employment stability
+    if(d.employment==='self-prof' || d.employment==='self-biz'){
+      factors.push({type:'neu', text:'Self-employed applicants typically require 2–3 years of ITRs and audited financial statements.'});
+    } else {
+      factors.push({type:'pos', text:'Salaried profile offers verifiable pay slips and stable credit appraisal.'});
+    }
+
+    const eligibleAmount = Math.max(0, Math.min(d.amount, maxPrincipal));
+    const recommendedEmi = calcEMI(eligibleAmount, d.rate, effectiveTenure*12);
+
+    let confidence = 0;
+    confidence += clamp((d.credit-300)/600,0,1)*35;
+    confidence += clamp(maxAffordableEmi>0 ? Math.min(1, maxAffordableEmi/(recommendedEmi||1)) : 0, 0,1)*30;
+    confidence += clamp(effectiveTenure/d.tenure,0,1)*15;
+    confidence += (d.employment==='govt' ? 10 : d.employment==='private' ? 8 : 6);
+    confidence += clamp(1-(d.existingCount/10),0,1)*10;
+    confidence = Math.round(clamp(confidence,5,98));
+
+    let statusLabel, badgeClass;
+    if(eligibleAmount >= d.amount*0.9 && d.credit>=650){ statusLabel='Eligible'; badgeClass='badge-good'; }
+    else if(eligibleAmount >= d.amount*0.35){ statusLabel='Conditionally Eligible'; badgeClass='badge-warn'; }
+    else { statusLabel='Not Eligible'; badgeClass='badge-bad'; }
+
+    return { statusLabel, badgeClass, eligibleAmount, recommendedEmi, confidence, factors, effectiveTenure };
+  }
+
+  function renderLoanResult(r){
+    document.getElementById('loanEmpty').style.display='none';
+    const box = document.getElementById('loanResult');
+    box.style.display='block';
+    box.innerHTML = `
+      <h2 class="ptitle">Assessment Result</h2>
+      <span class="badge ${r.badgeClass}">${r.statusLabel}</span>
+      <div class="kpi-row">
+        <div class="kpi"><span>Eligible loan amount</span><b>${fmtINR(r.eligibleAmount)}</b></div>
+        <div class="kpi"><span>Estimated EMI</span><b>${fmtINR(r.recommendedEmi)}</b></div>
+      </div>
+      <div class="hintline">Approval Confidence Index</div>
+      <div class="meter"><i style="width:0%"></i></div>
+      <div class="hintline" style="margin-top:4px;">${r.confidence}/100 — based on FOIR margin, credit score, retirement tenure cap and liabilities.</div>
+      <div class="factor-list">
+        ${r.factors.map(f=>`<div class="factor ${f.type}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${f.type==='pos'?'<path d="M5 13l4 4L19 7"/>':f.type==='neg'?'<path d="M6 6l12 12M18 6L6 18"/>':'<circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/>'}</svg><span>${f.text}</span></div>`).join('')}
+      </div>
+    `;
+    requestAnimationFrame(()=>{ box.querySelector('.meter i').style.width = r.confidence+'%'; });
+  }
+
+  /* ============ MODULE 2: CREDIT SCORE ANALYZER ============ */
+  const segKnown = document.getElementById('segKnown');
+  const segEstimate = document.getElementById('segEstimate');
+  segKnown.addEventListener('click', ()=>{
+    segKnown.classList.add('on'); segEstimate.classList.remove('on');
+    document.getElementById('knownBlock').style.display='block';
+    document.getElementById('estimateBlock').style.display='none';
+  });
+  segEstimate.addEventListener('click', ()=>{
+    segEstimate.classList.add('on'); segKnown.classList.remove('on');
+    document.getElementById('knownBlock').style.display='none';
+    document.getElementById('estimateBlock').style.display='block';
+  });
+  const utilization = document.getElementById('utilization');
+  utilization.addEventListener('input', ()=> document.getElementById('utilizationVal').textContent = utilization.value+'%');
+
+  document.getElementById('creditForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    let result;
+    if(segKnown.classList.contains('on')){
+      const score = parseInt(document.getElementById('knownScore').value);
+      if(!validateField('knownScore', score>=300 && score<=900)) return;
+      result = analyzeKnownScore(score);
+    } else {
+      const payHistory = document.getElementById('payHistory').value;
+      const util = parseInt(utilization.value);
+      const creditAge = parseFloat(document.getElementById('creditAge').value)||0;
+      const accounts = parseInt(document.getElementById('accounts').value)||0;
+      const inquiries = parseInt(document.getElementById('inquiries').value)||0;
+      result = estimateCreditScore({payHistory, util, creditAge, accounts, inquiries});
+    }
+    renderCreditResult(result);
+    state.credit = { score: result.score, category: result.category };
+    updateAiHint();
+    pushActivity('credit', `Credit score analysis: ${result.score} (${result.category})`, result.category, result.badgeClass);
+    
+    persistRecord('Credit_Analysis', {
+      creditScore: result.score,
+      status: result.category,
+      summary: `Score evaluated at ${result.score} (${result.category})`
+    });
+  });
+
+  function categoryFor(score){
+    if(score<580) return {category:'Poor', badgeClass:'badge-bad'};
+    if(score<670) return {category:'Fair', badgeClass:'badge-warn'};
+    if(score<740) return {category:'Good', badgeClass:'badge-warn'};
+    if(score<800) return {category:'Very Good', badgeClass:'badge-good'};
+    return {category:'Excellent', badgeClass:'badge-good'};
+  }
+  function analyzeKnownScore(score){
+    const cat = categoryFor(score);
+    return {
+      score, category:cat.category, badgeClass:cat.badgeClass,
+      breakdown:null,
+      tips: tipsForScore(score)
+    };
+  }
+  function estimateCreditScore(d){
+    const payMap = {ontime:100, minor:65, major:35, default:10};
+    const payScore = payMap[d.payHistory];
+    let utilScore; const u=d.util;
+    if(u<=10) utilScore=100; else if(u<=30) utilScore=85; else if(u<=50) utilScore=60; else if(u<=75) utilScore=35; else utilScore=10;
+    let ageScore; const a=d.creditAge;
+    if(a>=7) ageScore=100; else if(a>=4) ageScore=80; else if(a>=2) ageScore=60; else if(a>=1) ageScore=40; else ageScore=20;
+    let accScore; const ac=d.accounts;
+    if(ac>=2 && ac<=5) accScore=100; else if(ac===1 || (ac>=6&&ac<=8)) accScore=70; else accScore=40;
+    let inqScore; const iq=d.inquiries;
+    if(iq===0) inqScore=100; else if(iq<=2) inqScore=80; else if(iq<=4) inqScore=50; else inqScore=20;
+
+    const weighted = payScore*0.35 + utilScore*0.30 + ageScore*0.15 + accScore*0.10 + inqScore*0.10;
+    const score = Math.round(300 + (weighted/100)*600);
+    const cat = categoryFor(score);
+    return {
+      score, category:cat.category, badgeClass:cat.badgeClass,
+      breakdown:[
+        {label:'Payment history (35%)', pct:payScore, color:'var(--teal)'},
+        {label:'Credit utilization (30%)', pct:utilScore, color:'var(--violet)'},
+        {label:'Credit history age (15%)', pct:ageScore, color:'var(--amber)'},
+        {label:'Account mix (10%)', pct:accScore, color:'#7fe8c8'},
+        {label:'Recent inquiries (10%)', pct:inqScore, color:'var(--red)'}
+      ],
+      tips: tipsForScore(score, d)
+    };
+  }
+  function tipsForScore(score, d){
+    const tips=[];
+    if(score<670) tips.push('Set all credit card bills and loan EMIs to autopay — payment history carries the single largest credit weight.');
+    if(!d || d.util>30) tips.push('Keep credit card utilization strictly under 30% of your total credit limit (aiming for sub-10% prior to loan applications).');
+    if(!d || d.creditAge<4) tips.push('Preserve your oldest active credit card account to maintain a healthy account seasoning age.');
+    if(!d || d.inquiries>2) tips.push('Avoid multiple hard loan inquiries within short succession; spread out new applications by 6+ months.');
+    if(score>=750) tips.push('Your prime score gives you strong leverage to negotiate fee waivers and competitive loan interest rates.');
+    if(tips.length===0) tips.push('Maintain consistent low credit utilization and flawless repayment records.');
+    return tips;
+  }
+
+  function renderCreditResult(r){
+    document.getElementById('creditEmpty').style.display='none';
+    const box = document.getElementById('creditResult');
+    box.style.display='block';
+    const pct = clamp((r.score-300)/600,0,1);
+    const circumference = 2*Math.PI*58;
+    const breakdownHtml = r.breakdown ? `
+      <div class="bar-list" style="margin-top:22px;">
+        ${r.breakdown.map(b=>`<div class="bar-item"><span>${b.label}<b>${b.pct}%</b></span><div class="track"><i style="width:${b.pct}%; background:${b.color};"></i></div></div>`).join('')}
+      </div>` : '';
+    box.innerHTML = `
+      <h2 class="ptitle">Assessment Result</h2>
+      <div class="ring-wrap">
+        <div class="ring">
+          <svg viewBox="0 0 140 140">
+            <circle class="track" cx="70" cy="70" r="58"></circle>
+            <circle class="prog" id="creditRing" cx="70" cy="70" r="58" stroke="#8c7cf0" stroke-dasharray="${circumference}" stroke-dashoffset="${circumference}"></circle>
+          </svg>
+          <div class="ring-center"><b>${r.score}</b><span>of 900</span></div>
+        </div>
+        <div style="flex:1; min-width:160px;">
+          <span class="badge ${r.badgeClass}">${r.category}</span>
+          <p style="font-size:12.5px; color:var(--text-2); margin-top:10px; line-height:1.6;">Indicative proprietary estimate based on standard credit bureau weighting algorithms.</p>
+        </div>
+      </div>
+      ${breakdownHtml}
+      <div class="tips-list">
+        ${r.tips.map(t=>`<div class="tip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.8 4.6L18 9l-4.2 1.4L12 15l-1.8-4.6L6 9l4.2-1.4L12 3z"/></svg><span>${t}</span></div>`).join('')}
+      </div>
+    `;
+    requestAnimationFrame(()=>{
+      const ring = document.getElementById('creditRing');
+      ring.style.strokeDashoffset = circumference*(1-pct);
+    });
+  }
+
+  /* ============ MODULE 3: EMI CALCULATOR ============ */
+  function calcEMI(P, annualRatePct, months){
+    if(P<=0 || months<=0) return 0;
+    const r = annualRatePct/12/100;
+    if(r===0) return P/months;
+    return P*r*Math.pow(1+r,months)/(Math.pow(1+r,months)-1);
+  }
+
+  const emiAmount = document.getElementById('emiAmount');
+  const emiAmountSlider = document.getElementById('emiAmountSlider');
+  const emiRate = document.getElementById('emiRate');
+  const emiRateSlider = document.getElementById('emiRateSlider');
+  const emiTenure = document.getElementById('emiTenure');
+  const emiTenureSlider = document.getElementById('emiTenureSlider');
+  const segYears = document.getElementById('segYears');
+  const segMonths = document.getElementById('segMonths');
+  let tenureUnit = 'years';
+
+  function syncPair(numInput, rangeInput){
+    numInput.addEventListener('input', ()=>{ rangeInput.value = numInput.value; computeEmi(); });
+    rangeInput.addEventListener('input', ()=>{ numInput.value = rangeInput.value; computeEmi(); });
+  }
+  syncPair(emiAmount, emiAmountSlider);
+  syncPair(emiRate, emiRateSlider);
+  syncPair(emiTenure, emiTenureSlider);
+
+  segYears.addEventListener('click', ()=>{
+    if(tenureUnit==='years') return;
+    tenureUnit='years'; segYears.classList.add('on'); segMonths.classList.remove('on');
+    emiTenure.value = Math.max(1, Math.round(emiTenure.value/12));
+    emiTenureSlider.min=1; emiTenureSlider.max=30; emiTenureSlider.value=emiTenure.value;
+    computeEmi();
+  });
+  segMonths.addEventListener('click', ()=>{
+    if(tenureUnit==='months') return;
+    tenureUnit='months'; segMonths.classList.add('on'); segYears.classList.remove('on');
+    emiTenure.value = Math.round(emiTenure.value*12);
+    emiTenureSlider.min=1; emiTenureSlider.max=360; emiTenureSlider.value=emiTenure.value;
+    computeEmi();
+  });
+
+  let lastEmiResult = null;
+  function computeEmi(){
+    const P = clamp(parseFloat(emiAmount.value)||0, 0, 500000000);
+    const rate = clamp(parseFloat(emiRate.value)||0, 0, 60);
+    const tVal = parseFloat(emiTenure.value)||0;
+    const months = tenureUnit==='years' ? Math.round(tVal*12) : Math.round(tVal);
+    if(P<=0 || months<=0 || rate<0){ return; }
+
+    const emi = calcEMI(P, rate, months);
+    const totalPayment = emi*months;
+    const totalInterest = totalPayment - P;
+    const principalPct = clamp(P/totalPayment*100, 0, 100);
+    const interestPct = 100-principalPct;
+
+    document.getElementById('emiMonthlyBig').textContent = fmtINR(emi);
+    document.getElementById('kpiEmi').textContent = fmtINR(emi);
+    document.getElementById('kpiInterest').textContent = fmtINR(totalInterest);
+    document.getElementById('kpiTotal').textContent = fmtINR(totalPayment);
+    document.getElementById('emiPrincipalPct').textContent = principalPct.toFixed(1)+'%';
+    document.getElementById('emiInterestPct').textContent = interestPct.toFixed(1)+'%';
+    document.getElementById('emiPrincipalBar').style.width = principalPct+'%';
+    document.getElementById('emiInterestBar').style.width = interestPct+'%';
+
+    const circumference = 2*Math.PI*58;
+    const ringP = document.getElementById('emiRingPrincipal');
+    const ringI = document.getElementById('emiRingInterest');
+    const pLen = circumference*(principalPct/100);
+    ringP.setAttribute('stroke-dasharray', `${pLen} ${circumference-pLen}`);
+    ringP.setAttribute('stroke-dashoffset', 0);
+    const iLen = circumference*(interestPct/100);
+    ringI.setAttribute('stroke-dasharray', `${iLen} ${circumference-iLen}`);
+    ringI.setAttribute('stroke-dashoffset', -pLen);
+
+    const guidanceEl = document.getElementById('kpiGuidance');
+    guidanceEl.textContent = totalInterest > P ? 'Interest exceeds principal — consider shortening tenure or prepaying.' : 'Healthy interest-to-principal ratio.';
+
+    // Amortization Table
+    const years = Math.ceil(months/12);
+    let balance = P;
+    const body = document.getElementById('amortBody');
+    body.innerHTML='';
+    const r = rate/12/100;
+    for(let y=1; y<=years; y++){
+      let yearPrincipal=0, yearInterest=0;
+      const monthsThisYear = Math.min(12, months-(y-1)*12);
+      for(let m=0; m<monthsThisYear; m++){
+        const interestPortion = balance*r;
+        const principalPortion = emi-interestPortion;
+        balance = Math.max(0, balance-principalPortion);
+        yearInterest += interestPortion;
+        yearPrincipal += principalPortion;
+      }
+      const row = document.createElement('tr');
+      row.innerHTML = `<td>Year ${y}</td><td>${fmtINR(yearPrincipal)}</td><td>${fmtINR(yearInterest)}</td><td>${fmtINR(balance)}</td>`;
+      body.appendChild(row);
+    }
+
+    lastEmiResult = {principal:P, rate, months, tenureYears: (months/12).toFixed(1), emi, totalInterest, totalPayment};
+  }
+
+  document.getElementById('emiSaveBtn').addEventListener('click', ()=>{
+    if(!lastEmiResult) return;
+    state.emi = lastEmiResult;
+    updateAiHint();
+    pushActivity('emi', `Saved EMI plan: ${fmtINR(lastEmiResult.emi)}/mo on ${fmtINR(lastEmiResult.principal)}`, 'Saved', 'badge-good');
+    
+    persistRecord('EMI_Plan', {
+      principal: lastEmiResult.principal,
+      rate: lastEmiResult.rate,
+      tenure: lastEmiResult.tenureYears,
+      emi: lastEmiResult.emi,
+      status: 'Plan Saved',
+      summary: `${fmtINR(lastEmiResult.emi)}/mo for ${lastEmiResult.tenureYears} yrs`
+    });
+  });
+  computeEmi();
+
+  /* ============ MODULE 4: AI FINANCIAL TIPS & REASONING ============ */
+  function buildProfile(){
+    return {
+      monthlyIncome: parseFloat(document.getElementById('aiIncome').value)|| (state.loan ? state.loan.income : null),
+      monthlyExpenses: parseFloat(document.getElementById('aiExpenses').value)||null,
+      goal: document.getElementById('aiGoal').value,
+      riskAppetite: document.getElementById('aiRisk').value,
+      loanEligibility: state.loan,
+      creditScore: state.credit,
+      emiPlan: state.emi
+    };
+  }
+
+  // Built-in Smart BFSI Reasoning Engine
+  function generateBuiltInInsights(profile){
+    const items = [];
+    const income = profile.monthlyIncome;
+    const expenses = profile.monthlyExpenses;
+
+    if(income && expenses){
+      const savings = income - expenses;
+      const savingsRate = Math.round((savings / income) * 100);
+      if(savingsRate < 15){
+        items.push(`**Cash Flow Headroom**: Your savings rate is currently ~${savingsRate}% (₹${Math.round(savings).toLocaleString('en-IN')}/mo). BFSI benchmarks recommend at least 25–30% surplus before undertaking substantial leveraged debt.`);
+      } else {
+        items.push(`**Healthy Savings Ratio**: You maintain a solid ~${savingsRate}% savings margin (₹${Math.round(savings).toLocaleString('en-IN')}/mo surplus), providing good debt-servicing elasticity.`);
+      }
+    }
+
+    if(profile.loanEligibility){
+      const { eligibleAmount, status, rate, tenure } = profile.loanEligibility;
+      if(status === 'Eligible'){
+        items.push(`**Borrowing Optimization**: You have strong approval potential for ${fmtINR(eligibleAmount)}. Consider opting for a step-up or floating-rate structure if you anticipate annual income growth.`);
+      } else if(status === 'Conditionally Eligible'){
+        items.push(`**Bridge Strategy**: Your loan qualification is conditional. Adding a creditworthy co-applicant (spouse/parent) or pledging liquid collateral can bridge the eligibility gap.`);
+      } else {
+        items.push(`**De-risking Priority**: Focus on lowering active obligations and resolving any recent credit delinquency before submitting official loan applications.`);
+      }
+    }
+
+    if(profile.creditScore){
+      const { score, category } = profile.creditScore;
+      if(score < 700){
+        items.push(`**Credit Score Catalyst**: At ${score} (${category}), an upgrade of 40–50 points can lower home/auto loan interest quotes by 35–65 bps, saving ₹1.2L+ over a 15-year tenure.`);
+      } else {
+        items.push(`**Prime Tier Advantage**: With a score of ${score} (${category}), insist on zero-processing-fee waivers and competitive spread discounts from PSU & private banks.`);
+      }
+    }
+
+    if(profile.emiPlan){
+      const { emi, totalInterest, principal } = profile.emiPlan;
+      if(totalInterest > principal * 0.75){
+        items.push(`**Amortization Prepayment Hack**: Total interest on your plan equals ${fmtINR(totalInterest)}. Making just one extra EMI prepayment every year can shorten the tenure by 3–4 years and cut total interest by over 20%.`);
+      } else {
+        items.push(`**Balanced Repayment**: Your EMI of ${fmtINR(emi)} represents a sustainable liability schedule with healthy principal amortization.`);
+      }
+    }
+
+    // Goal & Risk Advice
+    const goalMap = {
+      home: 'Ensure your down payment constitutes at least 20–25% of property cost to avoid high LTV interest surcharges.',
+      emergency: 'Maintain 6 months of living expenses (₹' + (expenses ? Math.round(expenses*6).toLocaleString('en-IN') : '2,00,000') + ') parked in liquid funds or high-yield sweep-in FDs.',
+      debt: 'Execute the debt avalanche method: direct surplus cash flow to highest-rate debt while servicing minimums on the rest.',
+      invest: `With a ${profile.riskAppetite} risk profile, maintain an indexed asset allocation (e.g. ${profile.riskAppetite==='high'?'75/25':'50/50'} equity-to-debt ratio).`,
+      retire: 'Factor in an annual inflation rate of 6.5%; start compounding in tax-efficient retirement vehicles (NPS/PPF/Equity mutual funds).'
+    };
+    items.push(`**Targeted Objective (${profile.goal.toUpperCase()})**: ${goalMap[profile.goal] || 'Maintain disciplined asset allocation.'}`);
+
+    return items;
+  }
+
+  function generateBuiltInQAResponse(q, profile){
+    const lower = q.toLowerCase();
+    const income = profile.monthlyIncome;
+    const expenses = profile.monthlyExpenses;
+
+    if(lower.includes('prepay') || lower.includes('invest')){
+      return `When deciding between prepaying your loan and investing surplus funds, compare the loan's post-tax interest rate with your expected post-tax investment return. If your loan interest rate is above 9.5% p.a., prepaying yields a guaranteed, risk-free return equal to the saved interest. However, if your loan is a low-interest home loan (e.g., 8.5% with tax deductions), investing in a diversified index fund historically outpaces loan costs over a 10+ year horizon. A hybrid approach (50% to prepayment, 50% to SIPs) balances psychological debt relief with compounding wealth.`;
+    }
+    if(lower.includes('emergency') || lower.includes('reserve')){
+      const target = expenses ? fmtINR(expenses * 6) : "₹2,00,000 to ₹3,50,000";
+      return `For your financial profile, an optimal emergency reserve is 6 months of mandatory living expenses—approximately ${target}. Keep 50% in a liquid mutual fund or sweep-in fixed deposit and 50% in a high-yield savings account. Do not commit this fund to equities or illiquid instruments.`;
+    }
+    if(lower.includes('credit') || lower.includes('score')){
+      return `To rapidly boost your credit score: 1) Keep credit card utilization below 20% by making mid-cycle payments; 2) Automate EMI and utility payments to guarantee a 100% on-time payment track record; 3) Keep your oldest credit lines open; and 4) Avoid opening multiple loan inquiries within a 90-day window. Consistent adherence yields tangible score increases within 3 to 6 billing cycles.`;
+    }
+    if(lower.includes('reduce') && (lower.includes('emi') || lower.includes('interest'))){
+      return `To reduce your monthly EMI burden or overall interest: 1) Request your existing lender for a rate reset or loan transfer if prevailing market rates are lower; 2) Make lump-sum principal prepayments and request a tenure reduction rather than an EMI cut; 3) If immediate monthly cash flow is tight, request a tenure extension, but be aware that total interest will increase.`;
+    }
+    return `Based on your current numbers (${income ? 'Monthly income of ' + fmtINR(income) : 'unspecified income'} with a ${profile.goal} goal), prioritize establishing a 6-month liquidity reserve before taking on aggressive leveraged debt. Keep total existing debt servicing (FOIR) under 40–50% of your take-home pay, and maintain consistent credit discipline. For binding contractual agreements, review specific terms with your chartered accountant or licensed financial planner.`;
+  }
+
+  // Claude API Direct Caller
+  async function callClaudeAPI(apiKey, prompt){
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-3-5-haiku-20241022',
+        max_tokens: 600,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    if(!res.ok){
+      const err = await res.json().catch(()=>({}));
+      throw new Error(err.error?.message || `HTTP error ${res.status}`);
+    }
+    const data = await res.json();
+    return data.content?.[0]?.text || '';
+  }
+
+  // Gemini API Direct Caller
+  async function callGeminiAPI(apiKey, prompt){
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { maxOutputTokens: 600, temperature: 0.4 }
+      })
+    });
+    if(!res.ok){
+      const err = await res.json().catch(()=>({}));
+      throw new Error(err.error?.message || `HTTP error ${res.status}`);
+    }
+    const data = await res.json();
+    return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  }
+
+  function renderAiText(html){
+    const output = document.getElementById('aiOutput');
+    output.innerHTML = `<div class="ai-answer">${html}</div>`;
+  }
+  function renderAiThinking(){
+    const output = document.getElementById('aiOutput');
+    output.innerHTML = `<div class="ai-thinking"><span class="dotflash"><i></i><i></i><i></i></span> FitToLend AI is reasoning over your financial profile…</div>`;
+  }
+
+  // Generate Tips Action
+  document.getElementById('aiTipsBtn').addEventListener('click', async ()=>{
+    const profile = buildProfile();
+    renderAiThinking();
+
+    const provider = currentConfig.aiProvider;
+    const apiKey = currentConfig.apiKey;
+
+    if(provider === 'claude' && apiKey){
+      try{
+        const prompt = `You are FitToLend's expert BFSI financial advisory AI. Based on this user profile JSON: ${JSON.stringify(profile)}, provide 4-5 concise, high-impact financial recommendations with concrete numbers and actionable rationale. Use markdown bullet points. Profile: ${JSON.stringify(profile)}`;
+        const text = await callClaudeAPI(apiKey, prompt);
+        renderAiText(text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\n\n/g, '<br><br>'));
+        return;
+      }catch(err){
+        console.warn('Claude API failed, falling back to built-in engine:', err);
+      }
+    } else if(provider === 'gemini' && apiKey){
+      try{
+        const prompt = `You are FitToLend's expert BFSI financial advisory AI. Based on this user profile: ${JSON.stringify(profile)}, provide 4-5 concise, high-impact financial recommendations with concrete numbers and actionable rationale. Use markdown bullet points.`;
+        const text = await callGeminiAPI(apiKey, prompt);
+        renderAiText(text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\n\n/g, '<br><br>'));
+        return;
+      }catch(err){
+        console.warn('Gemini API failed, falling back to built-in engine:', err);
+      }
+    }
+
+    // Built-in Smart Engine Fallback/Default
+    setTimeout(()=>{
+      const insights = generateBuiltInInsights(profile);
+      const html = `<div class="tips-list">${insights.map(t=>`<div class="tip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.8 4.6L18 9l-4.2 1.4L12 15l-1.8-4.6L6 9l4.2-1.4L12 3z"/></svg><span>${t.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')}</span></div>`).join('')}</div><div class="hintline" style="margin-top:12px;">Generated by FitToLend Intelligent BFSI Engine.</div>`;
+      renderAiText(html);
+    }, 450);
+  });
+
+  // Chat Q&A Action
+  document.getElementById('aiAskBtn').addEventListener('click', async ()=>{
+    const q = document.getElementById('aiQuestion').value.trim();
+    if(!q) return;
+    const thread = document.getElementById('chatThread');
+    const userMsg = document.createElement('div');
+    userMsg.className='msg user'; userMsg.textContent = q;
+    thread.appendChild(userMsg);
+    document.getElementById('aiQuestion').value='';
+
+    const aiMsg = document.createElement('div');
+    aiMsg.className='msg ai'; aiMsg.innerHTML = `<span class="dotflash"><i></i><i></i><i></i></span>`;
+    thread.appendChild(aiMsg);
+    thread.scrollTop = thread.scrollHeight;
+
+    const profile = buildProfile();
+    const provider = currentConfig.aiProvider;
+    const apiKey = currentConfig.apiKey;
+
+    if(provider === 'claude' && apiKey){
+      try{
+        const prompt = `You are FitToLend BFSI advisor. User profile: ${JSON.stringify(profile)}. User query: "${q}". Provide a concise, clear 3-4 sentence financial response grounded in their figures.`;
+        const text = await callClaudeAPI(apiKey, prompt);
+        aiMsg.textContent = text;
+        thread.scrollTop = thread.scrollHeight;
+        return;
+      }catch(err){}
+    } else if(provider === 'gemini' && apiKey){
+      try{
+        const prompt = `You are FitToLend BFSI advisor. User profile: ${JSON.stringify(profile)}. User query: "${q}". Provide a concise, clear 3-4 sentence financial response grounded in their figures.`;
+        const text = await callGeminiAPI(apiKey, prompt);
+        aiMsg.textContent = text;
+        thread.scrollTop = thread.scrollHeight;
+        return;
+      }catch(err){}
+    }
+
+    // Built-in Assistant
+    setTimeout(()=>{
+      aiMsg.textContent = generateBuiltInQAResponse(q, profile);
+      thread.scrollTop = thread.scrollHeight;
+    }, 350);
+  });
+
+  /* ============ Session Restore ============ */
+  (function initSession(){
+    updateConfigUI();
+    const records = loadLocalRecords();
+    if(records.length){
+      const list = document.getElementById('activityList');
+      list.innerHTML = '';
+      records.slice(0, 5).forEach(r=>{
+        const tagClass = (r.status==='Eligible' || r.status==='Very Good' || r.status==='Excellent') ? 'badge-good' : (r.status==='Conditionally Eligible' || r.status==='Good' || r.status==='Fair') ? 'badge-warn' : 'badge-good';
+        pushActivity(r.module, `${r.summary || r.module} (Saved)`, r.status || 'Saved', tagClass);
+      });
+    }
+  })();
+
+})();
+</script>
+</body>
+</html>
