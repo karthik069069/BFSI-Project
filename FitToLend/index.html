@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FitToLend — AI-Powered Financial Decision Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div id="bg-mesh"><div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div></div>
+<div class="grain"></div>
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal-overlay" id="settingsModal">
+  <div class="glass modal-card">
+    <div class="modal-head">
+      <h3>Platform Settings</h3>
+      <button class="modal-close" id="closeSettingsBtn" aria-label="Close settings">&times;</button>
+    </div>
+    
+    <div>
+      <div class="modal-section" style="border-top:none; padding-top:0; margin-top:0;">
+        <h4>📊 Google Sheets Integration</h4>
+        <p class="hintline">Sync all loan calculations, credit assessments, and EMI schedules directly to your Google Sheet.</p>
+        <div class="field">
+          <label for="cfgSheetUrl">Google Apps Script Web App URL</label>
+          <input type="text" id="cfgSheetUrl" placeholder="https://script.google.com/macros/s/.../exec">
+          <div class="hintline">Refer to <code>google-apps-script.js</code> in this project to deploy your personal webhook.</div>
+        </div>
+        <div style="display:flex; gap:10px; margin-top:10px;">
+          <button type="button" class="btn-sm" id="testSheetBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg>
+            Test Sheets Connection
+          </button>
+          <span id="sheetTestMsg" style="font-size:12px; align-self:center;"></span>
+        </div>
+      </div>
+
+      <div class="modal-section">
+        <h4>🤖 AI Engine Configuration</h4>
+        <p class="hintline">Choose your reasoning engine for AI Financial Tips and contextual Q&A.</p>
+        <div class="field">
+          <label for="cfgAiProvider">AI Provider</label>
+          <select id="cfgAiProvider">
+            <option value="smart-local">Built-in BFSI Expert Engine (Offline, Instant)</option>
+            <option value="claude">Anthropic Claude API (Claude 3.5 Sonnet / Haiku)</option>
+            <option value="gemini">Google Gemini API (Gemini 1.5 / 2.0 Flash)</option>
+          </select>
+        </div>
+        <div class="field" id="cfgApiKeyField" style="display:none;">
+          <label for="cfgApiKey">API Key</label>
+          <input type="password" id="cfgApiKey" placeholder="sk-ant-... or AIzaSy...">
+          <div class="hintline">Keys are saved locally in your browser's private storage (<code>localStorage</code>) and never exposed.</div>
+        </div>
+      </div>
+
+      <div class="modal-section">
+        <h4>💾 Data Management</h4>
+        <p class="hintline">Export or reset calculation logs stored in this browser session.</p>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button type="button" class="btn-sm" id="exportCsvBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export All Records (CSV)
+          </button>
+          <button type="button" class="btn-sm" id="clearLocalBtn" style="color:var(--red);">Clear Local History</button>
+        </div>
+      </div>
+
+      <div style="margin-top:24px;">
+        <button type="button" class="btn btn-primary" id="saveSettingsBtn">Save & Apply Changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="shell">
+  <aside class="sidebar glass" id="sidebar">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#08110d" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>
+      </div>
+      <div>
+        <div class="brand-name">FitToLend</div>
+        <div class="brand-sub">Financial decision platform</div>
+      </div>
+    </div>
+
+    <nav class="navlist">
+      <div class="navgroup-label">Workspace</div>
+      <button class="navitem active" data-view="dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+        Overview <span class="dot"></span>
+      </button>
+      <div class="navgroup-label">Modules</div>
+      <button class="navitem" data-view="loan">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="6" width="20" height="13" rx="2"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>
+        Loan Eligibility <span class="dot"></span>
+      </button>
+      <button class="navitem" data-view="credit">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/></svg>
+        Credit Score <span class="dot"></span>
+      </button>
+      <button class="navitem" data-view="emi">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+        EMI Calculator <span class="dot"></span>
+      </button>
+      <button class="navitem" data-view="ai">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l1.8 4.6L18 9l-4.2 1.4L12 15l-1.8-4.6L6 9l4.2-1.4L12 3z"/><path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9L19 15z"/></svg>
+        AI Financial Tips <span class="dot"></span>
+      </button>
+    </nav>
+
+    <div class="sidebar-foot">
+      <button class="settings-btn" id="sidebarSettingsBtn" style="width:100%; justify-content:center; border-radius:var(--radius-md); padding:10px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Configure Integrations
+      </button>
+      <div class="privacy-chip glass">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 018 0v3"/></svg>
+        <span>Data is stored privately in your session and synced to your own Google Sheet.</span>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <button class="menu-btn" id="menuBtn" aria-label="Open menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        </button>
+        <div>
+          <h1 id="pageTitle">Overview</h1>
+          <div class="sub" id="pageSub">Your snapshot across all four modules</div>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <div class="status-pill glass" id="topbarStatusPill" title="Click to configure Google Sheets & AI">
+          <span class="pulse"></span> <span id="statusPillText">Local Storage Active</span>
+        </div>
+        <button class="settings-btn" id="topbarSettingsBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Settings
+        </button>
+      </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <section class="view active" id="view-dashboard">
+      <div class="hero glass">
+        <div class="hero-eyebrow">AI-POWERED BFSI TOOLKIT</div>
+        <h2>See where you stand before a bank does.</h2>
+        <p>Check loan eligibility, estimate your credit score, plan EMIs, and get AI-guided next steps — all in one private workspace with real-time reasoning and Google Sheets synchronization.</p>
+        <div class="hero-stats">
+          <div class="hero-stat"><b data-count="4">0</b><span>Decision modules</span></div>
+          <div class="hero-stat"><b data-count="600">0</b><span>Credit score range covered</span></div>
+          <div class="hero-stat"><b data-count="100">0</b><span>% calculated in your session</span></div>
+        </div>
+      </div>
+
+      <div class="module-grid">
+        <button class="module-card glass" data-view="loan">
+          <div class="module-icon icon-teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="6" width="20" height="13" rx="2"/><path d="M2 10h20"/><path d="M6 15h4"/></svg></div>
+          <h3>Loan Eligibility Checker</h3>
+          <p>Enter income, age, credit score and employment details to see what you'd likely qualify for.</p>
+          <span class="go">Open module →</span>
+        </button>
+        <button class="module-card glass" data-view="credit">
+          <div class="module-icon icon-violet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/></svg></div>
+          <h3>Credit Score Analyzer</h3>
+          <p>Get an estimated score and a breakdown of what's helping or hurting it, plus a risk read.</p>
+          <span class="go">Open module →</span>
+        </button>
+        <button class="module-card glass" data-view="emi">
+          <div class="module-icon icon-amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div>
+          <h3>EMI Calculator</h3>
+          <p>Real-time monthly instalment, total interest, and a year-by-year payoff breakdown.</p>
+          <span class="go">Open module →</span>
+        </button>
+        <button class="module-card glass" data-view="ai">
+          <div class="module-icon icon-red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l1.8 4.6L18 9l-4.2 1.4L12 15l-1.8-4.6L6 9l4.2-1.4L12 3z"/></svg></div>
+          <h3>AI Financial Tips</h3>
+          <p>Personalized guidance and interactive conversational advice built from your assessments.</p>
+          <span class="go">Open module →</span>
+        </button>
+      </div>
+
+      <div class="activity-panel glass">
+        <div class="activity-head">
+          <div>
+            <h3>Recent activity & persistence log</h3>
+            <p class="hint" style="margin-bottom:0;">Calculations from this session saved to your workspace and synced with Google Sheets.</p>
+          </div>
+          <button class="btn-sm" id="dashboardExportBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export Sheet
+          </button>
+        </div>
+        <div id="activityList">
+          <div class="activity-row" style="color:var(--text-2); border-top:none;">Nothing yet — run a module to see it appear here.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- LOAN ELIGIBILITY -->
+    <section class="view" id="view-loan">
+      <div class="work-grid">
+        <div class="panel glass">
+          <h2 class="ptitle">Loan Eligibility Checker</h2>
+          <p class="ptitle-sub">Based on your income, obligations, age, employment and credit score.</p>
+          <form id="loanForm" novalidate>
+            <div class="field">
+              <label for="loanIncome">Monthly net income (₹)</label>
+              <input type="number" id="loanIncome" min="1" step="1" placeholder="e.g. 65000" required>
+              <div class="err">Enter a monthly income greater than ₹0.</div>
+            </div>
+            <div class="field">
+              <label for="loanObligations">Existing monthly obligations / EMIs (₹)</label>
+              <input type="number" id="loanObligations" min="0" step="1" placeholder="e.g. 8000">
+              <div class="err">Enter 0 or a positive amount.</div>
+            </div>
+            <div class="field row2">
+              <div>
+                <label for="loanAmount">Desired loan amount (₹)</label>
+                <input type="number" id="loanAmount" min="1" step="1" placeholder="e.g. 2500000" required>
+                <div class="err">Enter the loan amount you want.</div>
+              </div>
+              <div>
+                <label for="loanTenure">Tenure (years)</label>
+                <input type="number" id="loanTenure" min="1" max="30" step="1" placeholder="e.g. 20" required>
+                <div class="err">Tenure must be between 1 and 30 years.</div>
+              </div>
+            </div>
+            <div class="field row2">
+              <div>
+                <label for="loanRate">Interest rate (% p.a.)</label>
+                <input type="number" id="loanRate" min="1" max="36" step="0.05" value="10.5" required>
+                <div class="err">Enter a rate between 1% and 36%.</div>
+              </div>
+              <div>
+                <label for="loanCredit">Credit score (300–900)</label>
+                <input type="number" id="loanCredit" min="300" max="900" step="1" placeholder="e.g. 740" required>
+                <div class="err">Score must be between 300 and 900.</div>
+              </div>
+            </div>
+            <div class="field row2">
+              <div>
+                <label for="loanAge">Your age</label>
+                <input type="number" id="loanAge" min="18" max="70" step="1" placeholder="e.g. 32" required>
+                <div class="err">Age must be between 18 and 70.</div>
+              </div>
+              <div>
+                <label for="loanExistingCount">Active existing loans</label>
+                <input type="number" id="loanExistingCount" min="0" max="10" step="1" value="0" required>
+                <div class="err">Enter a number between 0 and 10.</div>
+              </div>
+            </div>
+            <div class="field">
+              <label for="loanEmployment">Employment type</label>
+              <select id="loanEmployment" required>
+                <option value="">Select employment type</option>
+                <option value="govt">Salaried — Government / PSU</option>
+                <option value="private">Salaried — Private sector</option>
+                <option value="self-prof">Self-employed — Professional</option>
+                <option value="self-biz">Self-employed — Business owner</option>
+                <option value="unemployed">Unemployed / Student</option>
+              </select>
+              <div class="err">Select your employment type.</div>
+            </div>
+            <button type="submit" class="btn btn-primary">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg>
+              Check eligibility & sync
+            </button>
+          </form>
+        </div>
+
+        <div class="panel glass" id="loanResultPanel">
+          <div class="result-empty" id="loanEmpty">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="6" width="20" height="13" rx="2"/><path d="M2 10h20"/></svg>
+            <p>Fill in the form and check eligibility to see your estimated loan outcome here.</p>
+          </div>
+          <div id="loanResult" style="display:none;"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CREDIT SCORE -->
+    <section class="view" id="view-credit">
+      <div class="work-grid">
+        <div class="panel glass">
+          <h2 class="ptitle">Credit Score Analyzer</h2>
+          <p class="ptitle-sub">Already know your bureau score, or want an estimate from your credit behaviour?</p>
+          <div class="seg" style="margin-bottom:20px;">
+            <button type="button" id="segKnown" class="on">I know my score</button>
+            <button type="button" id="segEstimate">Estimate it for me</button>
+          </div>
+
+          <form id="creditForm" novalidate>
+            <div id="knownBlock">
+              <div class="field">
+                <label for="knownScore">Your current credit score (300–900)</label>
+                <input type="number" id="knownScore" min="300" max="900" step="1" placeholder="e.g. 782">
+                <div class="err">Score must be between 300 and 900.</div>
+              </div>
+            </div>
+
+            <div id="estimateBlock" style="display:none;">
+              <div class="field">
+                <label for="payHistory">Payment history (last 12 months)</label>
+                <select id="payHistory">
+                  <option value="ontime">Always paid on time (Optimal)</option>
+                  <option value="minor">Missed 1–2 payments (Fair)</option>
+                  <option value="major">Missed 3 or more payments (High Risk)</option>
+                  <option value="default">Frequent defaults / NPA</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="utilization">Credit utilization (% of limit used)</label>
+                <div class="slider-row">
+                  <input type="range" id="utilization" min="0" max="100" value="30">
+                  <span class="slider-val" id="utilizationVal">30%</span>
+                </div>
+              </div>
+              <div class="field row2">
+                <div>
+                  <label for="creditAge">Credit history age (years)</label>
+                  <input type="number" id="creditAge" min="0" max="40" step="1" value="4">
+                </div>
+                <div>
+                  <label for="accounts">Open accounts / cards</label>
+                  <input type="number" id="accounts" min="0" max="20" step="1" value="3">
+                </div>
+              </div>
+              <div class="field">
+                <label for="inquiries">Hard inquiries in last 6 months</label>
+                <input type="number" id="inquiries" min="0" max="20" step="1" value="1">
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 15l4-6 3 3 5-8"/></svg>
+              Analyze credit score & sync
+            </button>
+          </form>
+        </div>
+
+        <div class="panel glass" id="creditResultPanel">
+          <div class="result-empty" id="creditEmpty">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/></svg>
+            <p>Your score gauge, factor breakdown and risk read will appear here.</p>
+          </div>
+          <div id="creditResult" style="display:none;"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- EMI CALCULATOR -->
+    <section class="view" id="view-emi">
+      <div class="work-grid">
+        <div class="panel glass">
+          <h2 class="ptitle">EMI Calculator</h2>
+          <p class="ptitle-sub">Updates instantly as you adjust the sliders or enter figures.</p>
+          <div class="field">
+            <label for="emiAmount">Loan amount (₹)</label>
+            <input type="number" id="emiAmount" min="1000" step="1000" value="2500000">
+            <div class="slider-row" style="margin-top:8px;">
+              <input type="range" id="emiAmountSlider" min="50000" max="20000000" step="10000" value="2500000">
+            </div>
+          </div>
+          <div class="field">
+            <label for="emiRate">Interest rate (% p.a.)</label>
+            <input type="number" id="emiRate" min="1" max="36" step="0.05" value="9.5">
+            <div class="slider-row" style="margin-top:8px;">
+              <input type="range" id="emiRateSlider" min="1" max="24" step="0.05" value="9.5">
+            </div>
+          </div>
+          <div class="field">
+            <label for="emiTenure">Tenure</label>
+            <div class="seg" style="margin-bottom:10px;">
+              <button type="button" id="segYears" class="on">Years</button>
+              <button type="button" id="segMonths">Months</button>
+            </div>
+            <input type="number" id="emiTenure" min="1" max="30" step="1" value="20">
+            <div class="slider-row" style="margin-top:8px;">
+              <input type="range" id="emiTenureSlider" min="1" max="30" step="1" value="20">
+            </div>
+          </div>
+          <button type="button" class="btn btn-ghost" id="emiSaveBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            Save & Sync EMI Calculation
+          </button>
+        </div>
+
+        <div class="panel glass" id="emiResultPanel">
+          <h2 class="ptitle">Repayment breakdown</h2>
+          <p class="ptitle-sub">Principal vs. interest distribution over the tenure.</p>
+          <div class="ring-wrap">
+            <div class="ring">
+              <svg viewBox="0 0 140 140">
+                <circle class="track" cx="70" cy="70" r="58"></circle>
+                <circle class="prog" id="emiRingPrincipal" cx="70" cy="70" r="58" stroke="#2ad9a8"></circle>
+                <circle class="prog" id="emiRingInterest" cx="70" cy="70" r="58" stroke="#f0a857"></circle>
+              </svg>
+              <div class="ring-center"><b id="emiMonthlyBig">₹0</b><span>per month</span></div>
+            </div>
+            <div class="bar-list">
+              <div class="bar-item">
+                <span><span style="color:var(--teal);">● Principal portion</span><b id="emiPrincipalPct">0%</b></span>
+                <div class="track"><i id="emiPrincipalBar" style="width:0%; background:var(--teal);"></i></div>
+              </div>
+              <div class="bar-item">
+                <span><span style="color:var(--amber);">● Total interest</span><b id="emiInterestPct">0%</b></span>
+                <div class="track"><i id="emiInterestBar" style="width:0%; background:var(--amber);"></i></div>
+              </div>
+            </div>
+          </div>
+          <div class="kpi-row">
+            <div class="kpi"><span>Monthly EMI</span><b id="kpiEmi">—</b></div>
+            <div class="kpi"><span>Total interest payable</span><b id="kpiInterest">—</b></div>
+            <div class="kpi"><span>Total payment</span><b id="kpiTotal">—</b></div>
+            <div class="kpi"><span>Loan-to-income guidance</span><b id="kpiGuidance" style="font-size:14px; font-family:var(--font-body);">—</b></div>
+          </div>
+          <div class="amort-wrap">
+            <table class="amort-table" id="amortTable">
+              <thead><tr><th>Year</th><th>Principal paid</th><th>Interest paid</th><th>Balance remaining</th></tr></thead>
+              <tbody id="amortBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- AI FINANCIAL TIPS -->
+    <section class="view" id="view-ai">
+      <div class="work-grid">
+        <div class="panel glass">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
+            <h2 class="ptitle" style="margin-bottom:0;">Financial Profile</h2>
+            <span class="badge badge-good" id="aiEngineBadge" style="font-size:11px;">Built-in AI</span>
+          </div>
+          <p class="ptitle-sub">Auto-filled from other modules where available — adjust anything before asking.</p>
+          <div class="ai-profile-grid">
+            <div class="field">
+              <label for="aiIncome">Monthly income (₹)</label>
+              <input type="number" id="aiIncome" min="0" step="1000" placeholder="e.g. 65000">
+            </div>
+            <div class="field">
+              <label for="aiExpenses">Monthly expenses (₹)</label>
+              <input type="number" id="aiExpenses" min="0" step="1000" placeholder="e.g. 35000">
+            </div>
+            <div class="field">
+              <label for="aiGoal">Primary goal</label>
+              <select id="aiGoal">
+                <option value="home">Buy a home</option>
+                <option value="emergency">Build an emergency fund</option>
+                <option value="debt">Reduce / pay off high-cost debt</option>
+                <option value="invest">Grow long-term wealth</option>
+                <option value="retire">Plan for retirement</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="aiRisk">Risk appetite</label>
+              <select id="aiRisk">
+                <option value="low">Conservative (Low risk)</option>
+                <option value="medium" selected>Balanced (Moderate risk)</option>
+                <option value="high">Aggressive (High growth)</option>
+              </select>
+            </div>
+          </div>
+          <div class="hintline" id="aiContextHint">No saved calculations yet — figures from the Loan, Credit and EMI modules will show up here automatically.</div>
+          <button type="button" class="btn btn-ai" id="aiTipsBtn" style="margin-top:18px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.8 4.6L18 9l-4.2 1.4L12 15l-1.8-4.6L6 9l4.2-1.4L12 3z"/></svg>
+            Generate AI Insights
+          </button>
+
+          <div class="field" style="margin-top:22px;">
+            <label for="aiQuestion">Ask a follow-up financial question</label>
+            <textarea id="aiQuestion" placeholder="e.g. Should I prepay my loan or invest in an index fund? How much emergency fund do I need?"></textarea>
+          </div>
+          <button type="button" class="btn btn-ghost" id="aiAskBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            Ask FitToLend
+          </button>
+        </div>
+
+        <div class="panel glass">
+          <h2 class="ptitle">AI Recommendations & Q&A</h2>
+          <p class="ptitle-sub">Contextual advice synthesized from your BFSI assessment.</p>
+          <div class="ai-output" id="aiOutput">
+            <div class="result-empty" id="aiEmpty" style="min-height:160px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3l1.8 4.6L18 9l-4.2 1.4L12 15l-1.8-4.6L6 9l4.2-1.4L12 3z"/></svg>
+              <p>Click "Generate AI Insights" or ask a custom question to get personalized financial guidance.</p>
+            </div>
+          </div>
+          <div class="chat-thread" id="chatThread"></div>
+          <div class="disclaimer">FitToLend delivers educational, general-purpose analysis based on user inputs. It is not an officially licensed financial planner or SEBI registered advisor. Always consult qualified banking or financial professionals before finalizing binding commitments.</div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="appfoot">FitToLend · AI-Powered Financial Decision Platform · Data synced privately to your Google Sheets</footer>
+  </main>
+</div>
+
+<script src="js/app.js"></script>
+</body>
+</html>
